@@ -1,0 +1,307 @@
+import sys
+import os
+import uuid
+import hmac
+import hashlib
+import json
+from pathlib import Path
+
+BACKEND_DIR = Path(__file__).resolve().parent
+if str(BACKEND_DIR) not in sys.path:
+    sys.path.insert(0, str(BACKEND_DIR))
+
+from fastapi.testclient import TestClient
+from main import app
+from database import SessionLocal
+from entities import (
+    User, CandidateProfile, Campaign, Review, PublishingJob,
+    PaymentOrder, Payment, WebhookEvent, LedgerEntry, PlatformSetting
+)
+from security_encryption import encrypt_token, decrypt_token
+from config import RAZORPAY_WEBHOOK_SECRET
+
+client = TestClient(app)
+
+def run_tests():
+    print("=" * 70)
+    print("POLITIADS EXTERNAL INTEGRATIONS & COMPLIANCE TEST SUITE")
+    print("=" * 70)
+
+    # 1. Token Encryption & Decryption
+    print("\n[TEST 1] Provider Token Encryption (AES-GCM / Fernet)...")
+    secret_token = "EAABwz_secret_meta_marketing_access_token_99182"
+    ciphertext = encrypt_token(secret_token)
+    assert ciphertext != secret_token, "Token was not encrypted!"
+    decrypted = decrypt_token(ciphertext)
+    assert decrypted == secret_token, "Decrypted token does not match original!"
+    print(" PASS: Tokens encrypted and decrypted losslessly without plaintext leakage.")
+
+    # Setup Session: Candidate & Admin
+    print("\n[SETUP] Logging in Candidate and Super Admin...")
+    cand_res = client.post("/api/auth/login", json={"login": "9876543210", "password": "secret123"})
+    assert cand_res.status_code == 200, f"Candidate login failed: {cand_res.text}"
+    cand_cookies = cand_res.cookies
+
+    admin_res = client.post("/api/auth/login", json={"login": "admin@politiads.com", "password": "admin123"})
+    assert admin_res.status_code == 200, f"Admin login failed: {admin_res.text}"
+    admin_cookies = admin_res.cookies
+    print(" PASS: Candidate and Super Admin sessions established.")
+
+    # 2. Meta Connection Handshake & UI States
+    print("\n[TEST 2] Meta Connection Handshake & UI States...")
+    # Connect with valid token
+    conn_res = client.post(
+        "/api/meta/connect",
+        json={"access_token": "mock_valid_token_rajesh"},
+        cookies=cand_cookies
+    )
+    assert conn_res.status_code == 200, f"Meta connect failed: {conn_res.text}"
+    conn_data = conn_res.json()
+    assert conn_data["status"] == "Connected & Active"
+    assert len(conn_data["available_pages"]) > 0
+
+    # Check status
+    status_res = client.get("/api/meta/status", cookies=cand_cookies)
+    assert status_res.status_code == 200
+    assert status_res.json()["connection_status"] == "Connected & Active"
+    assert status_res.json()["is_connected"] is True
+
+    # Connect with insufficient permissions
+    insuf_res = client.post(
+        "/api/meta/connect",
+        json={"access_token": "mock_insufficient_scopes_token"},
+        cookies=cand_cookies
+    )
+    assert insuf_res.status_code == 200
+    insuf_status = client.get("/api/meta/status", cookies=cand_cookies).json()
+    assert insuf_status["connection_status"] == "Permission Required"
+    assert "ads_management" in insuf_status["missing_permissions"]
+    print(" PASS: Meta connection states ('Connected & Active', 'Permission Required') verified.")
+
+    # Reconnect valid token
+    client.post("/api/meta/connect", json={"access_token": "mock_valid_token_rajesh"}, cookies=cand_cookies)
+
+    # 3. Asynchronous Publishing Pipeline & Decoupled Status
+    print("\n[TEST 3] Asynchronous Publishing Pipeline & Decoupled Status...")
+    draft_res = client.post(
+        "/api/campaigns/create",
+        json={
+            "title": "Ward 14 Saturation Blitz",
+            "slogan": "वार्ड 14 का सच्चा विकास",
+            "budget_daily": 500,
+            "radius_km": 6,
+            "area": "Ward 14",
+            "pincode": "281306",
+            "whatsapp_phone": "9876543210",
+            "template_id": 1,
+            "symbol": "Car"
+        },
+        cookies=cand_cookies
+    )
+    assert draft_res.status_code == 200, f"Draft creation failed: {draft_res.text}"
+    campaign_id = draft_res.json()["id"]
+
+    # Admin enhances & pushes to pipeline
+    push_res = client.post(
+        "/api/admin/enhance-and-push",
+        json={
+            "ad_id": campaign_id,
+            "enhanced_slogan": "वार्ड 14 का समग्र विकास व हर घर सम्मान",
+            "adjusted_budget": 600,
+            "adjusted_radius": 7,
+            "correction_note": "Polished Hindi copy, verified ECI disclaimer"
+        },
+        cookies=admin_cookies
+    )
+    assert push_res.status_code == 200, f"Enhance & push failed: {push_res.text}"
+    push_data = push_res.json()
+    assert push_data["status"] == "success"
+    assert push_data["job_status"] == "Submitted"
+
+    # Verify database decoupled statuses
+    db = SessionLocal()
+    camp_in_db = db.query(Campaign).filter(Campaign.id == campaign_id).first()
+    assert camp_in_db.company_review_status == "Approved"
+    assert camp_in_db.publishing_job_status == "Submitted"
+    assert camp_in_db.delivery_status == "Paused"
+    assert camp_in_db.meta_ad_id is not None
+
+    job_in_db = db.query(PublishingJob).filter(PublishingJob.campaign_id == campaign_id).first()
+    assert job_in_db is not None
+    assert job_in_db.stage == "SUBMITTED"
+    assert job_in_db.meta_ad_id is not None
+    db.close()
+    print(" PASS: Publishing pipeline executed. Decoupled status verified (Company: Approved, Job: Submitted, Delivery: Paused).")
+
+    # 4. Emergency Kill-Switch
+    print("\n[TEST 4] Emergency Kill-Switch...")
+    ks_on = client.post("/api/admin/emergency-kill-switch", json={"enabled": True}, cookies=admin_cookies)
+    assert ks_on.status_code == 200
+    assert ks_on.json()["kill_switch_active"] is True
+
+    health = client.get("/api/admin/api-health", cookies=admin_cookies).json()
+    assert "Kill-Switch Active" in health["meta_status"]
+
+    # Turn off kill-switch
+    client.post("/api/admin/emergency-kill-switch", json={"enabled": False}, cookies=admin_cookies)
+    print(" PASS: Emergency kill-switch activated and deactivated cleanly.")
+
+    # 5. Payment Order in Integer Paise & Razorpay Checkout
+    print("\n[TEST 5] Payment Order Creation (Integer Paise & Validation)...")
+    # Sub-₹200 rejection
+    sub_res = client.post(
+        "/api/payments/create-order",
+        json={"item_type": "campaign_budget", "item_id": "budget_topup", "custom_budget_paise": 15000},  # ₹150
+        cookies=cand_cookies
+    )
+    assert sub_res.status_code == 400, "Should reject budget under ₹200"
+
+    # Valid order (₹500 = 50,000 paise)
+    order_res = client.post(
+        "/api/payments/create-order",
+        json={"item_type": "campaign_budget", "item_id": "budget_topup", "custom_budget_paise": 50000},
+        cookies=cand_cookies
+    )
+    assert order_res.status_code == 200, f"Order creation failed: {order_res.text}"
+    order_data = order_res.json()
+    assert order_data["amount_paise"] == 50000
+    assert order_data["amount_inr"] == 500.0
+    assert order_data["currency"] == "INR"
+    razorpay_order_id = order_data["razorpay_order_id"]
+    print(" PASS: Payment order created with integer paise and amount validation.")
+
+    # 6. Payment Signature Verification & Immutable Ledger
+    print("\n[TEST 6] Payment Verification & Immutable Financial Ledger...")
+    unique_pay_id = f"pay_mock_{uuid.uuid4().hex[:10]}"
+    verify_res = client.post(
+        "/api/payments/verify",
+        json={
+            "razorpay_order_id": razorpay_order_id,
+            "razorpay_payment_id": unique_pay_id,
+            "razorpay_signature": "mock_valid_signature_abc",
+            "payment_method": "upi"
+        },
+        cookies=cand_cookies
+    )
+    assert verify_res.status_code == 200, f"Payment verify failed: {verify_res.text}"
+
+    # Verify ledger entry in DB
+    db = SessionLocal()
+    pay_record = db.query(Payment).filter(Payment.razorpay_payment_id == unique_pay_id).first()
+    assert pay_record is not None
+    ledger_entry = db.query(LedgerEntry).filter(LedgerEntry.reference_id == pay_record.id).first()
+    assert ledger_entry is not None
+    assert ledger_entry.amount_paise == 50000
+    assert ledger_entry.platform_cut_paise + ledger_entry.meta_spend_paise == ledger_entry.amount_paise
+    db.close()
+    print(" PASS: Payment captured and balanced in immutable ledger (Cut + Meta Spend = Total).")
+
+    # 7. Cryptographic Webhook HMAC-SHA256 Signature Validation
+    print("\n[TEST 7] Webhook Cryptographic Signature Validation...")
+    unique_evt_id = f"evt_test_{uuid.uuid4().hex[:10]}"
+    unique_wh_pay_id = f"pay_wh_{uuid.uuid4().hex[:8]}"
+    webhook_payload = json.dumps({
+        "id": unique_evt_id,
+        "event": "payment.captured",
+        "payload": {
+            "payment": {
+                "entity": {
+                    "id": unique_wh_pay_id,
+                    "order_id": razorpay_order_id,
+                    "method": "upi"
+                }
+            }
+        }
+    }).encode("utf-8")
+
+    # Invalid signature test
+    bad_wh = client.post(
+        "/api/webhooks/razorpay",
+        content=webhook_payload,
+        headers={"X-Razorpay-Signature": "tampered_fake_signature"}
+    )
+    assert bad_wh.status_code == 400, "Tampered signature should be rejected!"
+
+    # Valid signature test
+    secret = RAZORPAY_WEBHOOK_SECRET.encode("utf-8")
+    valid_sig = hmac.new(secret, webhook_payload, hashlib.sha256).hexdigest()
+
+    good_wh = client.post(
+        "/api/webhooks/razorpay",
+        content=webhook_payload,
+        headers={"X-Razorpay-Signature": valid_sig}
+    )
+    assert good_wh.status_code == 200, f"Valid webhook rejected: {good_wh.text}"
+    assert good_wh.json()["status"] == "ok"
+    print(" PASS: Cryptographic signature verified; forged webhooks rejected.")
+
+    # 8. Webhook Idempotency (Duplicate Event Protection)
+    print("\n[TEST 8] Webhook Idempotency & Replay Protection...")
+    dup_wh = client.post(
+        "/api/webhooks/razorpay",
+        content=webhook_payload,
+        headers={"X-Razorpay-Signature": valid_sig}
+    )
+    assert dup_wh.status_code == 200
+    assert "Duplicate event acknowledged" in dup_wh.json()["message"]
+
+    db = SessionLocal()
+    events_count = db.query(WebhookEvent).filter(WebhookEvent.event_id == unique_evt_id).count()
+    assert events_count == 1, "Duplicate webhook event should not create multiple records!"
+    db.close()
+    print(" PASS: Duplicate webhook replayed and acknowledged without double-processing.")
+
+    # 9. In-App Notifications
+    print("\n[TEST 9] In-App Notifications System...")
+    notif_res = client.get("/api/notifications", cookies=cand_cookies)
+    assert notif_res.status_code == 200
+    notifs_data = notif_res.json()
+    assert notifs_data["unread_count"] > 0
+    assert len(notifs_data["notifications"]) > 0
+
+    first_notif_id = notifs_data["notifications"][0]["id"]
+    read_res = client.patch(f"/api/notifications/{first_notif_id}/read", cookies=cand_cookies)
+    assert read_res.status_code == 200
+
+    unread_after = client.get("/api/notifications", cookies=cand_cookies).json()["unread_count"]
+    assert unread_after == notifs_data["unread_count"] - 1
+    print(" PASS: In-App notifications delivered, counted, and marked read.")
+
+    # 10. Admin Webhooks Inspector & Refunds
+    print("\n[TEST 10] Super Admin Webhooks Inspector & Refunds...")
+    wh_list = client.get("/api/admin/webhooks", cookies=admin_cookies)
+    assert wh_list.status_code == 200
+    assert len(wh_list.json()) > 0
+
+    # Process refund
+    db = SessionLocal()
+    last_payment = db.query(Payment).order_by(Payment.created_at.desc()).first()
+    db.close()
+
+    if last_payment:
+        refund_res = client.post(
+            "/api/admin/refunds/process",
+            json={
+                "payment_id": last_payment.id,
+                "amount_inr": 100.0,
+                "reason": "Test campaign budget refund"
+            },
+            cookies=admin_cookies
+        )
+        assert refund_res.status_code == 200
+        assert refund_res.json()["status"] == "success"
+
+        # Check negative ledger reversal
+        db = SessionLocal()
+        rev_entry = db.query(LedgerEntry).filter(LedgerEntry.tx_type == "REFUND").first()
+        assert rev_entry is not None
+        assert rev_entry.amount_paise < 0, "Refund ledger entry must be negative reversal!"
+        db.close()
+        print(" PASS: Admin refund processed and recorded as negative reversal in ledger.")
+
+    print("\n" + "=" * 70)
+    print("ALL 10 EXTERNAL INTEGRATION & COMPLIANCE TESTS PASSED 100%!")
+    print("=" * 70)
+
+if __name__ == "__main__":
+    run_tests()

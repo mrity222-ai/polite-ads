@@ -1,0 +1,326 @@
+"""
+Automated Verification Test Suite for Phase 2:
+Database Persistence, Argon2id Authentication, Session Management, Account Isolation, and RBAC
+"""
+import sys
+import os
+import sqlite3
+from pathlib import Path
+
+# Add backend directory to sys.path
+BACKEND_DIR = Path(__file__).resolve().parent
+if str(BACKEND_DIR) not in sys.path:
+    sys.path.insert(0, str(BACKEND_DIR))
+
+# Use isolated test database for verification
+TEST_DB_PATH = BACKEND_DIR / "data" / "test_verification.db"
+if TEST_DB_PATH.exists():
+    try:
+        TEST_DB_PATH.unlink()
+    except Exception:
+        pass
+
+os.environ["DATABASE_URL"] = f"sqlite:///{TEST_DB_PATH.as_posix()}"
+
+from fastapi.testclient import TestClient
+from database import engine, SessionLocal, init_db
+from entities import Base, User, CandidateProfile, Campaign, Review, SubscriptionPlan, PlatformSetting, UserSession
+from seed import seed_database
+from main import app
+from security import verify_password, hash_token
+
+client = TestClient(app)
+
+def run_tests():
+    print("=" * 70)
+    print("POLITIADS PHASE 2 VERIFICATION TEST SUITE")
+    print("=" * 70)
+    passed = 0
+    total = 11
+
+    # Initialize isolated database and seed
+    init_db()
+    seed_database()
+
+    # -------------------------------------------------------------
+    # TEST 1: Plaintext password is NOT in DB (Argon2id verification)
+    # -------------------------------------------------------------
+    print("\n[TEST 1] Plaintext Password Check (Argon2id Hashing)...")
+    db = SessionLocal()
+    admin_user = db.query(User).filter(User.email == "admin@politiads.com").first()
+    demo_user = db.query(User).filter(User.id == "usr_demo").first()
+
+    assert admin_user is not None, "Admin user must exist"
+    assert demo_user is not None, "Demo user must exist"
+    assert admin_user.password_hash != "admin123", "Admin password must not be plaintext"
+    assert demo_user.password_hash != "secret123", "Demo user password must not be plaintext"
+    assert admin_user.password_hash.startswith("$argon2"), "Password hash must be Argon2id"
+    assert verify_password("admin123", admin_user.password_hash), "Argon2id verification for admin must succeed"
+    assert verify_password("secret123", demo_user.password_hash), "Argon2id verification for demo user must succeed"
+    assert not verify_password("wrongpass", admin_user.password_hash), "Wrong password must fail"
+    db.close()
+    print(" PASS: Plaintext passwords are not stored; Argon2id hashes verified.")
+    passed += 1
+
+    # -------------------------------------------------------------
+    # TEST 2: Registration & Duplicate Email/Mobile Rejection
+    # -------------------------------------------------------------
+    print("\n[TEST 2] Registration & Duplicate Email/Mobile Rejection (HTTP 400)...")
+    reg_payload = {
+        "full_name": "Test Candidate Arjun",
+        "mobile": "9811122233",
+        "email": "arjun@campaign.in",
+        "password": "Password123!",
+        "confirm_password": "Password123!"
+    }
+    r = client.post("/api/auth/register", json=reg_payload)
+    assert r.status_code == 200, f"Registration failed: {r.text}"
+    data = r.json()
+    assert data["user"]["email"] == "arjun@campaign.in"
+    assert "access_token" in data
+    arjun_id = data["user"]["id"]
+
+    # Duplicate registration with same email
+    r_dup_email = client.post("/api/auth/register", json={
+        "full_name": "Duplicate Person",
+        "mobile": "9999900000",
+        "email": "arjun@campaign.in",
+        "password": "Password123!",
+        "confirm_password": "Password123!"
+    })
+    assert r_dup_email.status_code == 400, "Duplicate email must be rejected with 400"
+
+    # Duplicate registration with same mobile
+    r_dup_mobile = client.post("/api/auth/register", json={
+        "full_name": "Duplicate Person 2",
+        "mobile": "9811122233",
+        "email": "unique@campaign.in",
+        "password": "Password123!",
+        "confirm_password": "Password123!"
+    })
+    assert r_dup_mobile.status_code == 400, "Duplicate mobile must be rejected with 400"
+    print(" PASS: New user registered; duplicate email/mobile correctly rejected with HTTP 400.")
+    passed += 1
+
+    # -------------------------------------------------------------
+    # TEST 3: Login Authentication & HttpOnly Cookie Generation
+    # -------------------------------------------------------------
+    print("\n[TEST 3] Login Authentication & HttpOnly Cookie...")
+    login_resp = client.post("/api/auth/login", json={
+        "login": "arjun@campaign.in",
+        "password": "Password123!"
+    })
+    assert login_resp.status_code == 200, f"Login failed: {login_resp.text}"
+    cookies = login_resp.cookies
+    assert "politiads_session" in cookies, "HttpOnly politiads_session cookie must be set"
+    arjun_token = login_resp.json()["access_token"]
+
+    # Test invalid password returns generic 401
+    bad_login = client.post("/api/auth/login", json={
+        "login": "arjun@campaign.in",
+        "password": "WrongPassword999"
+    })
+    assert bad_login.status_code == 401, "Invalid password must return 401"
+    assert "Invalid mobile number, email, or password" in bad_login.json()["detail"]
+    print(" PASS: Valid login issues session cookie; invalid credentials return generic 401.")
+    passed += 1
+
+    # -------------------------------------------------------------
+    # TEST 4: Authenticated /me endpoint via Cookie & Bearer Fallback
+    # -------------------------------------------------------------
+    print("\n[TEST 4] Session Authentication via Cookie & Bearer Header...")
+    # Using cookie
+    me_resp_cookie = client.get("/api/auth/me", cookies={"politiads_session": arjun_token})
+    assert me_resp_cookie.status_code == 200
+    assert me_resp_cookie.json()["id"] == arjun_id
+
+    # Using Bearer header
+    me_resp_bearer = client.get("/api/auth/me", headers={"Authorization": f"Bearer {arjun_token}"})
+    assert me_resp_bearer.status_code == 200
+    assert me_resp_bearer.json()["id"] == arjun_id
+
+    # Missing auth using a fresh unauthenticated client
+    fresh_client = TestClient(app)
+    me_unauth = fresh_client.get("/api/auth/me")
+    assert me_unauth.status_code == 401, "Missing auth must return 401"
+    print(" PASS: /me authenticated via cookie and Bearer header fallback.")
+    passed += 1
+
+    # -------------------------------------------------------------
+    # TEST 5: Logout & Session Revocation
+    # -------------------------------------------------------------
+    print("\n[TEST 5] Logout & Immediate Session Revocation...")
+    logout_resp = client.post("/api/auth/logout", cookies={"politiads_session": arjun_token})
+    assert logout_resp.status_code == 200
+
+    # Token must now be rejected
+    me_after_logout = client.get("/api/auth/me", cookies={"politiads_session": arjun_token})
+    assert me_after_logout.status_code == 401, "Revoked session must return 401"
+    print(" PASS: Logout revokes session token; subsequent requests return 401.")
+    passed += 1
+
+    # -------------------------------------------------------------
+    # TEST 6: Candidate RBAC Protection on Admin Endpoints (HTTP 403)
+    # -------------------------------------------------------------
+    print("\n[TEST 6] Candidate Access to Admin Endpoints (RBAC Enforced HTTP 403)...")
+    # Log back in as Candidate Arjun
+    c_login = client.post("/api/auth/login", json={"login": "arjun@campaign.in", "password": "Password123!"})
+    c_token = c_login.json()["access_token"]
+    c_cookies = {"politiads_session": c_token}
+
+    # Try admin endpoints as candidate
+    r_admin_reviews = client.get("/api/admin/pending-reviews", cookies=c_cookies)
+    assert r_admin_reviews.status_code == 403, f"Expected 403 for candidate, got {r_admin_reviews.status_code}"
+
+    r_admin_cands = client.get("/api/admin/candidates", cookies=c_cookies)
+    assert r_admin_cands.status_code == 403, f"Expected 403 for candidate, got {r_admin_cands.status_code}"
+
+    r_admin_comm = client.get("/api/admin/commission", cookies=c_cookies)
+    assert r_admin_comm.status_code == 403, f"Expected 403 for candidate, got {r_admin_comm.status_code}"
+    print(" PASS: Candidate user is strictly blocked with HTTP 403 Forbidden from all admin endpoints.")
+    passed += 1
+
+    # -------------------------------------------------------------
+    # TEST 7: Super Admin Successful Access to Admin Endpoints
+    # -------------------------------------------------------------
+    print("\n[TEST 7] Super Admin Access to Admin Endpoints...")
+    a_login = client.post("/api/auth/login", json={"login": "admin@politiads.com", "password": "admin123"})
+    assert a_login.status_code == 200, f"Admin login failed: {a_login.text}"
+    a_token = a_login.json()["access_token"]
+    a_cookies = {"politiads_session": a_token}
+
+    r_admin_reviews_ok = client.get("/api/admin/pending-reviews", cookies=a_cookies)
+    assert r_admin_reviews_ok.status_code == 200
+    r_admin_cands_ok = client.get("/api/admin/candidates", cookies=a_cookies)
+    assert r_admin_cands_ok.status_code == 200
+    cands_data = r_admin_cands_ok.json()
+    cands_count = len(cands_data) if isinstance(cands_data, list) else cands_data.get("total_count", 0)
+    assert cands_count >= 18
+    print(" PASS: Super Admin successfully authenticated and accessed admin suite.")
+    passed += 1
+
+    # -------------------------------------------------------------
+    # TEST 8: Account Data Isolation (User A vs User B Campaigns)
+    # -------------------------------------------------------------
+    print("\n[TEST 8] Account Data Isolation (Multi-Tenant Campaigns)...")
+    # Log in as demo candidate (usr_demo)
+    demo_login = client.post("/api/auth/login", json={"login": "rajesh@campaign.in", "password": "secret123"})
+    demo_token = demo_login.json()["access_token"]
+    demo_cookies = {"politiads_session": demo_token}
+
+    # usr_demo should have campaigns seeded
+    demo_camps = client.get("/api/campaigns", cookies=demo_cookies).json()
+    assert len(demo_camps) >= 2, "usr_demo should have at least 2 seeded campaigns"
+    for c in demo_camps:
+        assert c["user_id"] == "usr_demo", "Campaign owner must be usr_demo"
+
+    # Candidate Arjun creates a campaign
+    new_camp_payload = {
+        "title": "Arjun Ward 5 Youth Rally",
+        "whatsapp_phone": "9811122233",
+        "slogan": "युवाओं की आवाज़, वार्ड 5 का संपूर्ण विकास!",
+        "area": "Ward 5 East",
+        "pincode": "281306",
+        "radius_km": 6.5,
+        "budget_daily": 450.0,
+        "template_id": 1,
+        "symbol": "Kite"
+    }
+    create_r = client.post("/api/campaigns/create", json=new_camp_payload, cookies=c_cookies)
+    assert create_r.status_code == 200, f"Campaign creation failed: {create_r.text}"
+    arjun_camp = create_r.json()
+    assert arjun_camp["user_id"] == arjun_id
+    assert arjun_camp["budget_daily"] == 450.0
+
+    # Verify Arjun ONLY sees his own campaign
+    arjun_camps = client.get("/api/campaigns", cookies=c_cookies).json()
+    assert len(arjun_camps) == 1, "Arjun must only see his own 1 campaign"
+    assert arjun_camps[0]["id"] == arjun_camp["id"]
+
+    # Verify demo candidate CANNOT see Arjun's campaign
+    demo_camps_check = client.get("/api/campaigns", cookies=demo_cookies).json()
+    demo_camp_ids = [c["id"] for c in demo_camps_check]
+    assert arjun_camp["id"] not in demo_camp_ids, "demo candidate must NOT see Arjun's campaign"
+    print(" PASS: Multi-tenant data isolation verified. User A cannot view User B campaigns.")
+    passed += 1
+
+    # -------------------------------------------------------------
+    # TEST 9: Review Approval & Toggle Rules (REVIEW-01, 02, 03)
+    # -------------------------------------------------------------
+    print("\n[TEST 9] Review Approval & Campaign Toggle Security...")
+    # Candidate cannot toggle a pending review campaign
+    toggle_pending = client.post(f"/api/campaigns/{arjun_camp['id']}/toggle-status", cookies=c_cookies)
+    assert toggle_pending.status_code == 400, "Toggling pending campaign must return HTTP 400"
+    assert "under company review" in toggle_pending.json()["detail"].lower()
+
+    # Admin approves and enhances Arjun's campaign
+    enhance_payload = {
+        "ad_id": arjun_camp["id"],
+        "enhanced_slogan": "वार्ड 5 के उज्ज्वल भविष्य हेतु युवा शक्ति को अपना बहुमूल्य वोट दें!",
+        "adjusted_budget": 500.0,
+        "adjusted_radius": 8.0,
+        "correction_note": "Approved by Senior Copywriting Specialist"
+    }
+    enhance_r = client.post("/api/admin/enhance-and-push", json=enhance_payload, cookies=a_cookies)
+    assert enhance_r.status_code == 200, f"Admin approval failed: {enhance_r.text}"
+    assert enhance_r.json()["budget_daily"] == 500.0
+    assert enhance_r.json()["radius_km"] == 8.0
+
+    # Arjun can now toggle between Live and Paused
+    toggle_live_to_paused = client.post(f"/api/campaigns/{arjun_camp['id']}/toggle-status", cookies=c_cookies)
+    assert toggle_live_to_paused.status_code == 200
+    assert "Paused" in toggle_live_to_paused.json()["new_status"]
+
+    toggle_paused_to_live = client.post(f"/api/campaigns/{arjun_camp['id']}/toggle-status", cookies=c_cookies)
+    assert toggle_paused_to_live.status_code == 200
+    assert "Live" in toggle_paused_to_live.json()["new_status"]
+    print(" PASS: Review approval works atomically; pending bypass blocked; Live/Paused toggle verified.")
+    passed += 1
+
+    # -------------------------------------------------------------
+    # TEST 10: Candidate Suspension & Immediate Session Invalidation
+    # -------------------------------------------------------------
+    print("\n[TEST 10] Candidate Suspension & Immediate Session Invalidation...")
+    # Admin suspends Candidate Arjun
+    suspend_r = client.patch(f"/api/admin/candidates/{arjun_id}/status", json={"status": "Suspended"}, cookies=a_cookies)
+    assert suspend_r.status_code == 200
+    assert suspend_r.json()["new_status"] == "Suspended"
+    assert suspend_r.json()["revoked_sessions"] >= 1
+
+    # Arjun's active session must immediately fail with HTTP 403 Forbidden
+    arjun_blocked = client.get("/api/auth/me", cookies=c_cookies)
+    assert arjun_blocked.status_code in (401, 403), f"Expected 401/403 for suspended user, got {arjun_blocked.status_code}"
+
+    # New login attempt by suspended user must be blocked with HTTP 403
+    login_suspended = client.post("/api/auth/login", json={"login": "arjun@campaign.in", "password": "Password123!"})
+    assert login_suspended.status_code == 403, f"Expected 403 on login, got {login_suspended.status_code}"
+    assert "suspended" in login_suspended.json()["detail"].lower()
+
+    # Reactivate Candidate Arjun
+    reactivate_r = client.patch(f"/api/admin/candidates/{arjun_id}/status", json={"status": "Active"}, cookies=a_cookies)
+    assert reactivate_r.status_code == 200
+    assert reactivate_r.json()["new_status"] == "Active"
+
+    # Arjun can log in again
+    relogin = client.post("/api/auth/login", json={"login": "arjun@campaign.in", "password": "Password123!"})
+    assert relogin.status_code == 200
+    print(" PASS: Account suspension immediately revokes sessions and blocks logins; reactivation succeeds.")
+    passed += 1
+
+    # -------------------------------------------------------------
+    # TEST 11: SQLite Persistence Across Database Connections
+    # -------------------------------------------------------------
+    print("\n[TEST 11] Data Persistence Across SQLite Connections...")
+    raw_conn = sqlite3.connect(TEST_DB_PATH.as_posix())
+    c_count = raw_conn.execute("SELECT count(*) FROM users WHERE email = 'arjun@campaign.in'").fetchone()[0]
+    raw_conn.close()
+    assert c_count == 1, "Arjun user must persist in raw SQLite database file"
+    print(" PASS: Database persistence independently verified in SQLite storage.")
+    passed += 1
+
+    print("\n" + "=" * 70)
+    print(f"ALL {passed}/{total} VERIFICATION TESTS PASSED SUCCESSFULLY!")
+    print("=" * 70)
+
+if __name__ == "__main__":
+    run_tests()

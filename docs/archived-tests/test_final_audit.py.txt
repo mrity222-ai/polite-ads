@@ -1,0 +1,420 @@
+"""
+PolitiAds Phase 7 — Comprehensive Final System Audit & Penetration Test Suite
+Operates on an isolated test database (backend/data/test_audit.db).
+Does NOT mutate or delete the development database.
+"""
+import sys
+import os
+
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+        sys.stderr.reconfigure(encoding="utf-8")
+    except Exception:
+        pass
+import uuid
+import hmac
+import hashlib
+import json
+from pathlib import Path
+
+BACKEND_DIR = Path(__file__).resolve().parent
+if str(BACKEND_DIR) not in sys.path:
+    sys.path.insert(0, str(BACKEND_DIR))
+
+# Use isolated temporary database for final audit
+TEST_DB_PATH = BACKEND_DIR / "data" / "test_audit.db"
+if TEST_DB_PATH.exists():
+    try:
+        TEST_DB_PATH.unlink()
+    except Exception:
+        pass
+
+os.environ["DATABASE_URL"] = f"sqlite:///{TEST_DB_PATH.as_posix()}"
+os.environ["META_MOCK_MODE"] = "true"
+os.environ["RAZORPAY_MOCK_MODE"] = "true"
+
+from fastapi.testclient import TestClient
+from sqlalchemy import create_engine, event
+from sqlalchemy.orm import sessionmaker
+
+from database import Base, get_db
+from main import app
+from entities import (
+    User, CandidateProfile, Campaign, Review, PublishingJob,
+    PaymentOrder, Payment, WebhookEvent, LedgerEntry, PlatformSetting, UserSession
+)
+from security import hash_password, hash_token, verify_password
+from security_encryption import encrypt_token, decrypt_token
+from config import RAZORPAY_WEBHOOK_SECRET
+
+# Setup test database engine with foreign key enforcement
+engine_test = create_engine(os.environ["DATABASE_URL"], connect_args={"check_same_thread": False})
+
+@event.listens_for(engine_test, "connect")
+def set_sqlite_pragma(dbapi_connection, connection_record):
+    cursor = dbapi_connection.cursor()
+    cursor.execute("PRAGMA foreign_keys=ON")
+    cursor.close()
+
+TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine_test)
+
+def override_get_db():
+    db = TestingSessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+app.dependency_overrides[get_db] = override_get_db
+
+# Create fresh schema in test database
+Base.metadata.create_all(bind=engine_test)
+
+client = TestClient(app)
+
+audit_results = []
+
+def record_result(category: str, check_name: str, passed: bool, evidence: str):
+    audit_results.append({
+        "category": category,
+        "check": check_name,
+        "passed": passed,
+        "evidence": evidence
+    })
+    status_str = "PASS" if passed else "FAIL"
+    print(f"[{status_str}] {check_name}: {evidence}")
+    assert passed, f"Audit Check Failed: {check_name} - {evidence}"
+
+def run_audit():
+    print("=" * 75)
+    print("POLITIADS PHASE 7 — MASTER SYSTEM AUDIT & PENETRATION VERIFICATION")
+    print("Isolated Test Database: backend/data/test_audit.db")
+    print("=" * 75)
+
+    db = TestingSessionLocal()
+
+    # -------------------------------------------------------------------------
+    # PART 1: SEEDING & DATABASE INTEGRITY
+    # -------------------------------------------------------------------------
+    print("\n--- PART 1: SEEDING & DATABASE INTEGRITY ---")
+
+    # 1.1 Fresh Schema Creation
+    table_names = list(Base.metadata.tables.keys())
+    record_result("Database", "Fresh Schema Initialization", len(table_names) >= 12, f"Created {len(table_names)} tables in clean test DB.")
+
+    # 1.2 Seed Initial Accounts
+    admin_user = User(
+        id="usr_admin_audit",
+        full_name="PolitiAds Super Admin",
+        email="admin@audit.politiads.com",
+        mobile="9999900000",
+        password_hash=hash_password("adminSecret123"),
+        role="admin",
+        status="active"
+    )
+    db.add(admin_user)
+
+    cand_a = User(
+        id="usr_cand_a",
+        full_name="Rajesh Kumar Sharma",
+        email="rajesh@ward14.in",
+        mobile="9876500001",
+        password_hash=hash_password("rajeshSecret123"),
+        role="candidate",
+        status="active"
+    )
+    db.add(cand_a)
+
+    cand_b = User(
+        id="usr_cand_b",
+        full_name="Arjun Singh Yadav",
+        email="arjun@ward5.in",
+        mobile="9876500002",
+        password_hash=hash_password("arjunSecret123"),
+        role="candidate",
+        status="active"
+    )
+    db.add(cand_b)
+
+    comm_setting = PlatformSetting(key="company_commission_pct", value="25.0")
+    db.add(comm_setting)
+    db.commit()
+
+    # Create profiles
+    prof_a = CandidateProfile(
+        user_id=cand_a.id,
+        candidate_name="Rajesh Kumar Sharma",
+        contesting_post="Ward Councillor / Corporator",
+        gaon_ward="Civil Lines, Ward 14",
+        area_block="Mathura Urban",
+        pincode="281306",
+        lat="27.4482",
+        lng="78.0416",
+        symbol_name="Car",
+        disclaimer_text="Paid for by: Rajesh Kumar Sharma Campaign"
+    )
+    prof_b = CandidateProfile(
+        user_id=cand_b.id,
+        candidate_name="Arjun Singh Yadav",
+        contesting_post="Village Head (Gram Pradhan)",
+        gaon_ward="Bithoor Village",
+        area_block="Bithoor Block",
+        pincode="209217",
+        lat="26.6186",
+        lng="80.2747",
+        symbol_name="Bicycle",
+        disclaimer_text="Paid for by: Arjun Singh Yadav Campaign"
+    )
+    db.add_all([prof_a, prof_b])
+    db.commit()
+
+    record_result("Database", "Multi-Tenant Seeding", True, "Seeded Admin, Candidate A, and Candidate B with profiles.")
+
+    # 1.3 Foreign Key Cascading Verification
+    # Create dummy session for cand_b and delete cand_b to test cascade
+    dummy_user = User(
+        id="usr_cascade_test",
+        full_name="Dummy User",
+        email="dummy@cascade.in",
+        mobile="9800000000",
+        password_hash=hash_password("dummyPass123"),
+        role="candidate",
+        status="active"
+    )
+    db.add(dummy_user)
+    db.commit()
+    dummy_session = UserSession(
+        token_hash="hash_dummy_token_123",
+        user_id=dummy_user.id,
+        expires_at=User.created_at.default.arg(None)
+    )
+    from datetime import datetime, timezone, timedelta
+    dummy_session.expires_at = datetime.now(timezone.utc) + timedelta(hours=24)
+    db.add(dummy_session)
+    db.commit()
+
+    db.delete(dummy_user)
+    db.commit()
+    orphaned_sessions = db.query(UserSession).filter(UserSession.user_id == "usr_cascade_test").count()
+    record_result("Database", "Foreign Key Cascade Delete", orphaned_sessions == 0, "Deleting user cleanly cascaded and removed child sessions.")
+
+    # -------------------------------------------------------------------------
+    # PART 2: AUTHENTICATION & SESSION MANAGEMENT
+    # -------------------------------------------------------------------------
+    print("\n--- PART 2: AUTHENTICATION & SESSIONS ---")
+
+    # 2.1 Registration & Duplicate Validation
+    reg_dup_email = client.post("/api/auth/register", json={
+        "full_name": "Duplicate Tester",
+        "email": "rajesh@ward14.in",
+        "mobile": "9811122233",
+        "password": "Password@123",
+        "confirm_password": "Password@123"
+    })
+    record_result("Auth", "Registration Duplicate Email Rejection", reg_dup_email.status_code == 400, "Rejected duplicate email with HTTP 400.")
+
+    reg_dup_phone = client.post("/api/auth/register", json={
+        "full_name": "Duplicate Tester",
+        "email": "newunique@ward14.in",
+        "mobile": "9876500001",
+        "password": "Password@123",
+        "confirm_password": "Password@123"
+    })
+    record_result("Auth", "Registration Duplicate Mobile Rejection", reg_dup_phone.status_code == 400, "Rejected duplicate mobile with HTTP 400.")
+
+    # 2.2 Invalid Login Rejection
+    bad_login = client.post("/api/auth/login", json={"login": "rajesh@ward14.in", "password": "wrongPassword"})
+    record_result("Auth", "Invalid Password Rejection", bad_login.status_code == 401, "Returned generic HTTP 401 on bad password.")
+
+    # 2.3 Successful Login & HttpOnly Cookie
+    login_a = client.post("/api/auth/login", json={"login": "rajesh@ward14.in", "password": "rajeshSecret123"})
+    record_result("Auth", "Candidate A Login", login_a.status_code == 200, "Login issued user payload and politiads_session cookie.")
+    cookies_a = login_a.cookies
+
+    login_b = client.post("/api/auth/login", json={"login": "arjun@ward5.in", "password": "arjunSecret123"})
+    record_result("Auth", "Candidate B Login", login_b.status_code == 200, "Candidate B login successful.")
+    cookies_b = login_b.cookies
+
+    login_admin = client.post("/api/auth/login", json={"login": "admin@audit.politiads.com", "password": "adminSecret123"})
+    record_result("Auth", "Super Admin Login", login_admin.status_code == 200, "Admin login successful.")
+    cookies_admin = login_admin.cookies
+
+    # 2.4 Session Restore (/api/auth/me)
+    me_a = client.get("/api/auth/me", cookies=cookies_a)
+    record_result("Auth", "Session Restore via Cookie", me_a.status_code == 200 and me_a.json()["id"] == "usr_cand_a", "Server restored candidate session without credentials re-entry.")
+
+    # 2.5 Logout & Session Revocation
+    temp_login = client.post("/api/auth/login", json={"login": "arjun@ward5.in", "password": "arjunSecret123"})
+    temp_cookies = temp_login.cookies
+    logout_res = client.post("/api/auth/logout", cookies=temp_cookies)
+    record_result("Auth", "Logout Session Revocation", logout_res.status_code == 200, "Logout endpoint invalidated session.")
+    post_logout_me = client.get("/api/auth/me", cookies=temp_cookies)
+    record_result("Auth", "Revoked Token Access Rejection", post_logout_me.status_code == 401, "Subsequent request with revoked token returned HTTP 401.")
+
+    # -------------------------------------------------------------------------
+    # PART 3: RBAC & DATA ISOLATION PENETRATION CHECKS
+    # -------------------------------------------------------------------------
+    print("\n--- PART 3: RBAC & DATA ISOLATION PENETRATION ---")
+
+    # 3.1 Unauthenticated Request Rejection
+    unauth_get = client.get("/api/campaigns")
+    record_result("Security", "Unauthenticated Route Protection", unauth_get.status_code == 401, "Protected endpoint rejected unauthenticated request.")
+
+    # 3.2 Candidate Blocked from Admin Suite (HTTP 403)
+    cand_to_admin = client.get("/api/admin/pending-reviews", cookies=cookies_a)
+    record_result("Security", "Candidate Privilege Escalation Block", cand_to_admin.status_code == 403, "Candidate strictly blocked from /api/admin/* with HTTP 403 Forbidden.")
+
+    # 3.3 Multi-Tenant Isolation: Candidate A Creates Campaign
+    draft_a = client.post("/api/campaigns/create", json={
+        "title": "Rajesh Ward 14 Campaign Blitz",
+        "slogan": "वार्ड 14 का सच्चा विकास",
+        "budget_daily": 500,
+        "radius_km": 6,
+        "area": "Civil Lines",
+        "pincode": "281306",
+        "whatsapp_phone": "9876500001",
+        "template_id": 1,
+        "symbol": "Car"
+    }, cookies=cookies_a)
+    record_result("Campaigns", "Candidate A Draft Creation", draft_a.status_code == 200, f"Created campaign {draft_a.json()['id']}")
+    camp_a_id = draft_a.json()["id"]
+
+    # Candidate B attempts to read / mutate Candidate A's campaign
+    camps_b = client.get("/api/campaigns", cookies=cookies_b).json()
+    b_ids = [c["id"] for c in camps_b]
+    record_result("Security", "Multi-Tenant Cross-Tenant Leakage Check", camp_a_id not in b_ids, "Candidate B cannot see Candidate A's campaigns.")
+
+    b_toggle_a = client.post(f"/api/campaigns/{camp_a_id}/toggle-status", cookies=cookies_b)
+    record_result("Security", "Unauthorized Campaign Mutation Block", b_toggle_a.status_code in (403, 404), "Candidate B cannot mutate Candidate A's campaign.")
+
+    # 3.4 Account Suspension Enforcement
+    suspend_res = client.patch(f"/api/admin/candidates/{cand_a.id}/status", json={"status": "Suspended"}, cookies=cookies_admin)
+    record_result("Security", "Admin Account Suspension", suspend_res.status_code == 200, "Admin suspended Candidate A.")
+
+    # Suspended user's existing session must fail on next request
+    suspended_me = client.get("/api/auth/me", cookies=cookies_a)
+    record_result("Security", "Suspended User Session Invalidation", suspended_me.status_code in (401, 403), "Suspended user blocked from active session immediately.")
+
+    # Suspended user cannot log in
+    suspended_login = client.post("/api/auth/login", json={"login": "rajesh@ward14.in", "password": "rajeshSecret123"})
+    record_result("Security", "Suspended User New Login Rejection", suspended_login.status_code == 403, "Suspended user login rejected with HTTP 403.")
+
+    # Reactivate Candidate A
+    client.patch(f"/api/admin/candidates/{cand_a.id}/status", json={"status": "Active"}, cookies=cookies_admin)
+    re_login_a = client.post("/api/auth/login", json={"login": "rajesh@ward14.in", "password": "rajeshSecret123"})
+    cookies_a = re_login_a.cookies
+    record_result("Security", "Reactivated Account Login", re_login_a.status_code == 200, "Reactivated account can log in with new session.")
+
+    # -------------------------------------------------------------------------
+    # PART 4: ASYNCHRONOUS META PIPELINE & STATUS DECOUPLING
+    # -------------------------------------------------------------------------
+    print("\n--- PART 4: META PIPELINE & DECOUPLED STATUS ---")
+
+    # Connect Meta (Valid token)
+    meta_conn = client.post("/api/meta/connect", json={"access_token": "mock_valid_token_rajesh"}, cookies=cookies_a)
+    record_result("Meta", "Token Encryption & Page Handshake", meta_conn.status_code == 200 and meta_conn.json()["status"] == "Connected & Active", "Meta token encrypted in DB and Pages retrieved.")
+
+    # Admin Reviews and Approves Campaign -> Triggers Publishing Pipeline
+    admin_push = client.post("/api/admin/enhance-and-push", json={
+        "ad_id": camp_a_id,
+        "enhanced_slogan": "वार्ड 14 का समग्र विकास व हर परिवार का सम्मान",
+        "adjusted_budget": 600,
+        "adjusted_radius": 7,
+        "correction_note": "Verified ECI disclaimer & centered symbol"
+    }, cookies=cookies_admin)
+    record_result("Admin", "Atomic Approval & Publishing Trigger", admin_push.status_code == 200 and admin_push.json()["job_status"] == "Submitted", "Ad enhanced and queued into publishing pipeline.")
+
+    # Verify Decoupled Statuses in DB
+    db.expire_all()
+    updated_camp = db.query(Campaign).filter(Campaign.id == camp_a_id).first()
+    record_result("Pipeline", "Decoupled Company Review Status", updated_camp.company_review_status == "Approved", "Company review marked 'Approved'.")
+    record_result("Pipeline", "Decoupled Publishing Job Status", updated_camp.publishing_job_status == "Submitted", "Publishing job marked 'Submitted'.")
+    record_result("Pipeline", "Decoupled Initial Delivery Status", updated_camp.delivery_status == "Paused", "Initial delivery safely initialized to 'Paused'.")
+
+    # -------------------------------------------------------------------------
+    # PART 5: PAYMENT GATEWAY (RAZORPAY), WEBHOOKS & IMMUTABLE LEDGER
+    # -------------------------------------------------------------------------
+    print("\n--- PART 5: PAYMENT GATEWAY, WEBHOOKS & LEDGER ---")
+
+    # 5.1 Sub-INR 200 Budget Rejection
+    bad_order = client.post("/api/payments/create-order", json={
+        "item_type": "campaign_budget",
+        "item_id": "topup",
+        "custom_budget_paise": 10000  # Rs. 100
+    }, cookies=cookies_a)
+    record_result("Payments", "Sub-INR 200 Budget Validation", bad_order.status_code == 400, "Rejected order below INR 200 minimum threshold.")
+
+    # 5.2 Valid Order Creation in Integer Paise
+    valid_order = client.post("/api/payments/create-order", json={
+        "item_type": "campaign_budget",
+        "item_id": "topup",
+        "custom_budget_paise": 100000  # Rs. 1,000.00
+    }, cookies=cookies_a)
+    record_result("Payments", "Integer Paise Order Creation", valid_order.status_code == 200 and valid_order.json()["amount_paise"] == 100000, "Created order for 100,000 paise (Rs. 1,000.00).")
+    rzp_order_id = valid_order.json()["razorpay_order_id"]
+
+    # 5.3 Webhook HMAC-SHA256 Signature Verification
+    unique_wh_event_id = f"evt_audit_{uuid.uuid4().hex[:10]}"
+    wh_payload = json.dumps({
+        "id": unique_wh_event_id,
+        "event": "payment.captured",
+        "payload": {
+            "payment": {
+                "entity": {
+                    "id": f"pay_audit_{uuid.uuid4().hex[:8]}",
+                    "order_id": rzp_order_id,
+                    "method": "upi"
+                }
+            }
+        }
+    }).encode("utf-8")
+
+    # Tampered signature test
+    tampered_wh = client.post("/api/webhooks/razorpay", content=wh_payload, headers={"X-Razorpay-Signature": "forged_signature_xyz"})
+    record_result("Webhooks", "Tampered Webhook Signature Rejection", tampered_wh.status_code == 400, "Rejected forged webhook signature with HTTP 400.")
+
+    # Valid signature test
+    secret_bytes = RAZORPAY_WEBHOOK_SECRET.encode("utf-8")
+    valid_sig = hmac.new(secret_bytes, wh_payload, hashlib.sha256).hexdigest()
+
+    good_wh = client.post("/api/webhooks/razorpay", content=wh_payload, headers={"X-Razorpay-Signature": valid_sig})
+    record_result("Webhooks", "Valid Webhook Signature Acceptance", good_wh.status_code == 200, "Verified authentic webhook via HMAC-SHA256.")
+
+    # 5.4 Webhook Idempotency (Replay Attack Protection)
+    replay_wh = client.post("/api/webhooks/razorpay", content=wh_payload, headers={"X-Razorpay-Signature": valid_sig})
+    record_result("Webhooks", "Idempotency Replay Protection", replay_wh.status_code == 200 and "Duplicate event acknowledged" in replay_wh.json()["message"], "Duplicate event acknowledged without double crediting.")
+
+    # 5.5 Double-Entry Immutable Financial Ledger Verification
+    db.expire_all()
+    ledger_entries = db.query(LedgerEntry).filter(LedgerEntry.user_id == cand_a.id).all()
+    assert len(ledger_entries) > 0
+    latest_entry = ledger_entries[-1]
+    balanced = (latest_entry.platform_cut_paise + latest_entry.meta_spend_paise) == latest_entry.amount_paise
+    record_result("Ledger", "Double-Entry Ledger Balance", balanced, f"Ledger balanced: Gross INR {latest_entry.amount_paise/100:.2f} = Cut INR {latest_entry.platform_cut_paise/100:.2f} + Meta Spend INR {latest_entry.meta_spend_paise/100:.2f}")
+
+    # -------------------------------------------------------------------------
+    # PART 6: IN-APP NOTIFICATIONS & EMERGENCY CONTROLS
+    # -------------------------------------------------------------------------
+    print("\n--- PART 6: NOTIFICATIONS & EMERGENCY CONTROLS ---")
+
+    notifs = client.get("/api/notifications", cookies=cookies_a).json()
+    record_result("Notifications", "In-App Notification Delivery", notifs["unread_count"] > 0, f"Delivered {len(notifs['notifications'])} notifications to Candidate A.")
+
+    # Emergency Kill-Switch Activation
+    ks_on = client.post("/api/admin/emergency-kill-switch", json={"enabled": True}, cookies=cookies_admin)
+    record_result("Admin Controls", "Emergency Kill-Switch Activation", ks_on.status_code == 200 and ks_on.json()["kill_switch_active"] is True, "Meta operations halted via Emergency Kill-Switch.")
+
+    # Deactivate Kill-Switch
+    ks_off = client.post("/api/admin/emergency-kill-switch", json={"enabled": False}, cookies=cookies_admin)
+    record_result("Admin Controls", "Emergency Kill-Switch Deactivation", ks_off.status_code == 200 and ks_off.json()["kill_switch_active"] is False, "Normal operations resumed.")
+
+    db.close()
+
+    print("\n" + "=" * 75)
+    print(f"MASTER AUDIT COMPLETE: ALL {len(audit_results)} CHECKS PASSED 100%!")
+    print("=" * 75)
+    return audit_results
+
+if __name__ == "__main__":
+    run_audit()

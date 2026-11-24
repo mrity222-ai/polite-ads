@@ -1,0 +1,2608 @@
+import React, { useState, useRef } from 'react';
+import { 
+  Megaphone, 
+  Target, 
+  ShieldCheck, 
+  Smartphone, 
+  TrendingUp, 
+  Users,
+  Activity,
+  MapPin, 
+  CheckCircle2, 
+  ArrowRight, 
+  Eye, 
+  EyeOff,
+  Sparkles, 
+  Sliders, 
+  DollarSign, 
+  Layers, 
+  HelpCircle, 
+  PhoneCall, 
+  Share2, 
+  ChevronRight,
+  UserCheck,
+  Flame,
+  Award,
+  Zap,
+  BarChart3,
+  Vote,
+  ChevronDown,
+  Globe,
+  Radio,
+  Check,
+  Settings,
+  CreditCard,
+  Building2,
+  Lock,
+  Compass,
+  X,
+  Mail,
+  Phone,
+  User,
+  KeyRound,
+  CheckCheck,
+  AlertCircle,
+  Upload,
+  Image as ImageIcon,
+  Navigation,
+  Crosshair,
+  LayoutDashboard,
+  PlayCircle,
+  PauseCircle,
+  FileText,
+  MessageSquare,
+  LogOut,
+  PlusCircle,
+  ExternalLink,
+  Search,
+  Filter,
+  RefreshCw,
+  Map as MapIcon,
+  Save,
+  CheckSquare,
+  Bell,
+  ToggleLeft,
+  ToggleRight,
+  Wrench,
+  Send,
+  PieChart,
+  Video,
+  FileSpreadsheet
+} from 'lucide-react';
+
+export default function App() {
+  // Navigation: 'landing' (DEFAULT) | 'dashboard' | 'admin' | 'onboarding'
+  const [currentView, setCurrentView] = useState('landing');
+  
+  // Auth Modal State: isOpen, mode ('signup' | 'login')
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authMode, setAuthMode] = useState('signup'); // 'signup' or 'login'
+
+  // Candidate Dashboard Active Tab: 'overview' | 'ads_manager' | 'surveys_services' | 'chess_spy' | 'billing' | 'settings'
+  const [dashboardTab, setDashboardTab] = useState('overview');
+
+  // Admin Panel Active Tab: 'approvals_studio' | 'total_users' | 'packets' | 'revenue' | 'meta_health'
+  const [adminTab, setAdminTab] = useState('approvals_studio');
+
+  // Settings Sub-Tab
+  const [settingsSubTab, setSettingsSubTab] = useState('profile');
+
+  // --- Modal State for "+ Create New Ad" ---
+  const [isCreateAdModalOpen, setIsCreateAdModalOpen] = useState(false);
+  const [showSuccessToast, setShowSuccessToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+
+  // User Profile Dropdown in Dashboard
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+
+  // --- Registration / Auth State ---
+  const [regFullName, setRegFullName] = useState('');
+  const [regMobile, setRegMobile] = useState('');
+  const [regEmail, setRegEmail] = useState('');
+  const [regPassword, setRegPassword] = useState('');
+  const [regConfirmPassword, setRegConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [regError, setRegError] = useState('');
+
+  // --- Candidate Profile State (from Onboarding & edited in Settings) ---
+  const [obCandidateName, setObCandidateName] = useState('Rajesh Kumar Sharma');
+  const [obMobile, setObMobile] = useState('9876543210');
+  const [obEmail, setObEmail] = useState('rajesh@campaign.in');
+  const [obPost, setObPost] = useState('Ward Councillor / Corporator');
+  const [obPhotoPreview, setObPhotoPreview] = useState(null);
+  const fileInputRef = useRef(null);
+  const settingsPhotoInputRef = useRef(null);
+
+  const [obGaonWard, setObGaonWard] = useState('Rampur, Ward No. 12');
+  const [obAreaBlock, setObAreaBlock] = useState('Sadabad Block, Hathras');
+  const [obPincode, setObPincode] = useState('281306');
+  const [gpsLocation, setGpsLocation] = useState({ lat: '27.4482', lng: '78.0416', accuracy: 25 });
+  const [gpsLoading, setGpsLoading] = useState(false);
+  const [obSymbol, setObSymbol] = useState('Car');
+  const [customSymbolPreview, setCustomSymbolPreview] = useState(null);
+  const symbolInputRef = useRef(null);
+  const settingsSymbolInputRef = useRef(null);
+  const [defaultSlogan, setDefaultSlogan] = useState('आपका विश्वास, हमारा संकल्प - विकास ही लक्ष्य');
+  const [disclaimerText, setDisclaimerText] = useState('Paid for by: Rajesh Kumar Sharma Campaign');
+
+  // Meta Integration State
+  const [connectedFbPage, setConnectedFbPage] = useState('Rajesh Kumar Sharma - Official Public Figure');
+  const [connectedInsta, setConnectedInsta] = useState('@rajesh_sharma_official');
+  const [adAccountId, setAdAccountId] = useState('act_98124018294');
+  const [whatsappAlertsEnabled, setWhatsappAlertsEnabled] = useState(true);
+
+  // --- Onboarding Flow Stepper ---
+  const [onboardingStep, setOnboardingStep] = useState(1);
+  const [isMetaConnected, setIsMetaConnected] = useState(true);
+
+  // --- Form State INSIDE "+ Create New Ad" Modal ---
+  const [modalTitle, setModalTitle] = useState('Ward 14 Vikas Sankalp Yatra');
+  const [modalPhone, setModalPhone] = useState('9876543210');
+  const [modalPhoto, setModalPhoto] = useState(null);
+  const modalPhotoInputRef = useRef(null);
+  const [modalSymbol, setModalSymbol] = useState('Car');
+  const [modalCustomSymbol, setModalCustomSymbol] = useState(null);
+  const modalSymbolInputRef = useRef(null);
+  const [modalSlogan, setModalSlogan] = useState('आपका विश्वास, हमारा संकल्प - विकास ही लक्ष्य');
+  const [modalArea, setModalArea] = useState('Rampur, Ward 12');
+  const [modalPincode, setModalPincode] = useState('281306');
+  const [modalRadius, setModalRadius] = useState(8);
+  const [modalDailyBudget, setModalDailyBudget] = useState(500);
+  const [modalError, setModalError] = useState('');
+  const [modalTemplate, setModalTemplate] = useState(1);
+  const [modalGpsLoading, setModalGpsLoading] = useState(false);
+
+  // Reach computation
+  const modalReachMin = Math.round(modalDailyBudget * 28);
+  const modalReachMax = Math.round(modalDailyBudget * 44);
+
+  // Landing Page Interactive Simulator State
+  const [simName, setSimName] = useState('Rajesh Sharma');
+  const [simPhone, setSimPhone] = useState('9876543210');
+  const [simPost, setSimPost] = useState('Ward Councillor / Corporator');
+  const [simArea, setSimArea] = useState('Civil Lines, Ward 14');
+  const [simRadius, setSimRadius] = useState(8);
+  const [simSymbol, setSimSymbol] = useState('Car');
+  const [simBudget, setSimBudget] = useState(500);
+
+  // --- Live Active Campaigns List (Candidate View) ---
+  const [activeCampaigns, setActiveCampaigns] = useState([
+    {
+      id: 'ad_101',
+      title: 'Ward 14 Vikas Sankalp Yatra',
+      post: 'Ward Councillor Candidate',
+      budget: 500,
+      radius: 8,
+      reach: 18450,
+      spent: 450,
+      clicks: 42,
+      status: 'Live 🟢',
+      badge: '✨ PolitiAds Team Enhanced',
+      template: 1,
+      date: 'Today',
+      candidateName: 'Rajesh Kumar Sharma',
+      slogan: 'सड़क, पानी और प्रकाश - यही है हमारा सच्चा विकास'
+    },
+    {
+      id: 'ad_102',
+      title: 'Youth & Employment Drive Appeal',
+      post: 'Ward Councillor Candidate',
+      budget: 300,
+      radius: 5,
+      reach: 10000,
+      spent: 280,
+      clicks: 22,
+      status: 'Live 🟢',
+      badge: '✨ Verified & Enhanced',
+      template: 2,
+      date: '2 days ago',
+      candidateName: 'Rajesh Kumar Sharma',
+      slogan: 'युवाओं को अवसर, वार्ड को बेहतर'
+    }
+  ]);
+
+  // --- Admin Review Queue ---
+  const [adminPendingAds, setAdminPendingAds] = useState([
+    {
+      id: 'review_201',
+      candidateName: 'Sanjay Yadav',
+      post: 'Gram Pradhan Candidate',
+      phone: '9812345678',
+      area: 'Bithoor, Ward 3',
+      pincode: '209217',
+      budget: 400,
+      radius: 6,
+      submittedDate: '10 mins ago',
+      originalSlogan: 'hume vote do sab thik kr denge (Raw text)',
+      enhancedSlogan: 'गांव के हर परिवार का सम्मान, विकास ही हमारी पहचान',
+      symbol: 'Tractor 🚜',
+      status: 'Pending Admin Review 🟡',
+      needsCorrection: true,
+      correctionNote: 'कंपनी द्वारा स्लोगन और पोस्टर सुधार दिया गया'
+    }
+  ]);
+
+  
+  // --- Super Admin Boss Suite State ---
+  const [companyMarginPct, setCompanyMarginPct] = useState(20); // Default 20% company cut
+  const [calculatorBudget, setCalculatorBudget] = useState(200); // Demo calculator budget
+  const [candidateSearchQuery, setCandidateSearchQuery] = useState('');
+  const [candidateFilterStatus, setCandidateFilterStatus] = useState('All');
+  const [selectedCandidateDossier, setSelectedCandidateDossier] = useState(null);
+
+  const [candidatesDirectory, setCandidatesDirectory] = useState([
+    { id: 'USR-101', name: 'Rajesh Kumar Sharma', phone: '9876543210', email: 'rajesh@campaign.in', post: 'Ward Councillor / Corporator', ward: 'Rampur, Ward No. 12', pincode: '281306', plan: 'Ward Councillor Pro', status: 'Active', totalSpend: 4800, totalAds: 3, symbol: 'Car', joinDate: '24 Oct 2026', lat: '27.4482', lng: '78.0416' },
+    { id: 'USR-102', name: 'Sanjay Yadav', phone: '9812345678', email: 'sanjay@bithoor.in', post: 'Gram Pradhan Candidate', ward: 'Bithoor, Ward 3', pincode: '209217', plan: 'Gram Panchayat Starter', status: 'Active', totalSpend: 1200, totalAds: 1, symbol: 'Tractor', joinDate: '25 Oct 2026', lat: '26.6139', lng: '80.2743' },
+    { id: 'USR-103', name: 'Priya Chaudhary', phone: '9723456789', email: 'priya@noida.in', post: 'Nagar Palika President', ward: 'Sector 14, Ward 8', pincode: '201301', plan: 'Ward Councillor Pro', status: 'Active', totalSpend: 7400, totalAds: 4, symbol: 'Kite', joinDate: '20 Oct 2026', lat: '28.5355', lng: '77.3910' },
+    { id: 'USR-104', name: 'Amitabh Shukla', phone: '9634567890', email: 'shukla@kanpur.in', post: 'Vidhan Sabha MLA Candidate', ward: 'Sadabad Assembly 07', pincode: '281306', plan: 'Vidhan Sabha MLA War-Room', status: 'Active', totalSpend: 18500, totalAds: 9, symbol: 'Cricket Bat', joinDate: '18 Oct 2026', lat: '27.4421', lng: '78.0433' },
+    { id: 'USR-105', name: 'Meena Devi', phone: '9545678901', email: 'meena@patna.in', post: 'Gram Pradhan Candidate', ward: 'Phulwari Sharif Block', pincode: '801505', plan: 'Gram Panchayat Starter', status: 'Pending', totalSpend: 600, totalAds: 1, symbol: 'Cup & Saucer', joinDate: '26 Oct 2026', lat: '25.5788', lng: '85.0833' },
+    { id: 'USR-106', name: 'Harish Patel', phone: '9456789012', email: 'harish@gujarat.in', post: 'Ward Councillor / Corporator', ward: 'Ghatlodia Ward 11', pincode: '380061', plan: 'Ward Councillor Pro', status: 'Active', totalSpend: 5200, totalAds: 3, symbol: 'Key', joinDate: '22 Oct 2026', lat: '23.0734', lng: '72.5408' },
+    { id: 'USR-107', name: 'Mohammad Rizwan', phone: '9367890123', email: 'rizwan@lucknow.in', post: 'Nagar Nigam Corporator', ward: 'Old City Ward 22', pincode: '226003', plan: 'Ward Councillor Pro', status: 'Active', totalSpend: 3900, totalAds: 2, symbol: 'Lantern', joinDate: '21 Oct 2026', lat: '26.8467', lng: '80.9462' },
+    { id: 'USR-108', name: 'Kavita Rani', phone: '9278901234', email: 'kavita@haryana.in', post: 'Zila Parishad Member', ward: 'Sonipat Ward 5', pincode: '131001', plan: 'Ward Councillor Pro', status: 'Active', totalSpend: 8200, totalAds: 5, symbol: 'Book', joinDate: '19 Oct 2026', lat: '28.9931', lng: '77.0151' },
+    { id: 'USR-109', name: 'Balwinder Singh', phone: '9189012345', email: 'balwinder@punjab.in', post: 'Sarpanch Candidate', ward: 'Amritsar Rural', pincode: '143001', plan: 'Gram Panchayat Starter', status: 'Suspended', totalSpend: 1400, totalAds: 1, symbol: 'Hand Pump', joinDate: '15 Oct 2026', lat: '31.6340', lng: '74.8723' },
+    { id: 'USR-110', name: 'Deepak Verma', phone: '9090123456', email: 'verma@bhopal.in', post: 'Ward Councillor / Corporator', ward: 'Arera Colony Ward 4', pincode: '462016', plan: 'Ward Councillor Pro', status: 'Active', totalSpend: 4100, totalAds: 2, symbol: 'Clock', joinDate: '23 Oct 2026', lat: '23.2132', lng: '77.4358' },
+    { id: 'USR-111', name: 'Sunita Rawat', phone: '9001234567', email: 'sunita@dehradun.in', post: 'Gram Pradhan Candidate', ward: 'Doiwala Block', pincode: '248140', plan: 'Gram Panchayat Starter', status: 'Active', totalSpend: 900, totalAds: 1, symbol: 'Flower Pot', joinDate: '24 Oct 2026', lat: '30.1742', lng: '78.1189' },
+    { id: 'USR-112', name: 'Mahesh Joshi', phone: '9112345678', email: 'joshi@jaipur.in', post: 'Nagar Palika President', ward: 'Mansarovar Ward 9', pincode: '302020', plan: 'Ward Councillor Pro', status: 'Active', totalSpend: 6300, totalAds: 3, symbol: 'Kite', joinDate: '17 Oct 2026', lat: '26.8524', lng: '75.7684' },
+    { id: 'USR-113', name: 'Anita Soren', phone: '9223456789', email: 'anita@ranchi.in', post: 'Mukhiya Candidate', ward: 'Kanke Ward 2', pincode: '834006', plan: 'Gram Panchayat Starter', status: 'Active', totalSpend: 1100, totalAds: 1, symbol: 'Bow & Arrow', joinDate: '25 Oct 2026', lat: '23.4326', lng: '85.3218' },
+    { id: 'USR-114', name: 'Nitin Gadve', phone: '9334567890', email: 'nitin@nagpur.in', post: 'Corporator Candidate', ward: 'Dharampeth Ward 15', pincode: '440010', plan: 'Ward Councillor Pro', status: 'Active', totalSpend: 4500, totalAds: 2, symbol: 'Torch', joinDate: '22 Oct 2026', lat: '21.1458', lng: '79.0623' },
+    { id: 'USR-115', name: 'Gita Banerjee', phone: '9445678901', email: 'gita@kolkata.in', post: 'Councillor Candidate', ward: 'Bhowanipore Ward 70', pincode: '700025', plan: 'Ward Councillor Pro', status: 'Active', totalSpend: 5800, totalAds: 3, symbol: 'Fish', joinDate: '20 Oct 2026', lat: '22.5298', lng: '88.3444' },
+    { id: 'USR-116', name: 'Rameshwar Reddy', phone: '9556789012', email: 'reddy@hyderabad.in', post: 'GHMC Corporator Candidate', ward: 'Kukatpally Ward 118', pincode: '500072', plan: 'Ward Councillor Pro', status: 'Active', totalSpend: 6900, totalAds: 4, symbol: 'Car', joinDate: '19 Oct 2026', lat: '17.4875', lng: '78.3953' },
+    { id: 'USR-117', name: 'Karthik Subramanian', phone: '9667890123', email: 'karthik@chennai.in', post: 'Corporator Candidate', ward: 'Mylapore Ward 124', pincode: '600004', plan: 'Ward Councillor Pro', status: 'Active', totalSpend: 7100, totalAds: 3, symbol: 'Ceiling Fan', joinDate: '18 Oct 2026', lat: '13.0339', lng: '80.2687' },
+    { id: 'USR-118', name: 'Virendra Singh Rathore', phone: '9778901234', email: 'rathore@rajasthan.in', post: 'Vidhan Sabha MLA Candidate', ward: 'Ajmer North Assembly', pincode: '305001', plan: 'Vidhan Sabha MLA War-Room', status: 'Active', totalSpend: 22400, totalAds: 11, symbol: 'Sword', joinDate: '14 Oct 2026', lat: '26.4499', lng: '74.6399' }
+  ]);
+
+  const [subscriptionPlans, setSubscriptionPlans] = useState([
+    {
+      id: 'plan_panchayat',
+      name: 'Gram Panchayat Starter',
+      price: 999,
+      dailyAdLimit: 500,
+      usersCount: 8,
+      badge: 'Popular',
+      features: ['3km Geo-radius targeting', 'Company Slogan Polish', 'WhatsApp Lead Alerts', 'ECI Compliance Check']
+    },
+    {
+      id: 'plan_ward',
+      name: 'Ward Councillor Pro',
+      price: 2499,
+      dailyAdLimit: 1500,
+      usersCount: 7,
+      badge: 'Best Value',
+      features: ['8km Geo-radius targeting', 'Meta Ad Library Opponent Spy', 'Unlimited Ad Revisions', '24x7 Priority Support', 'Voter WhatsApp Automation']
+    },
+    {
+      id: 'plan_mla',
+      name: 'Vidhan Sabha MLA War-Room',
+      price: 9999,
+      dailyAdLimit: 10000,
+      usersCount: 3,
+      badge: 'Elite',
+      features: ['Entire Constituency (40km)', '4-Tier Chess Counter-Attacks', 'Dedicated Campaign Manager', 'Ground Sentiment Reports', 'Unlimited Meta Push']
+    }
+  ]);
+
+  const [isCreatePlanModalOpen, setIsCreatePlanModalOpen] = useState(false);
+  const [newPlanName, setNewPlanName] = useState('');
+  const [newPlanPrice, setNewPlanPrice] = useState(1999);
+  const [newPlanDailyLimit, setNewPlanDailyLimit] = useState(1000);
+  const [newPlanFeatures, setNewPlanFeatures] = useState('10km Radius, Meta Ad Spy, Daily Budget Cap 1000');
+
+  const [apiHealthState, setApiHealthState] = useState({
+    metaStatus: 'Connected & Active 🟢',
+    metaLatency: 138,
+    isTesting: false,
+    whatsappStatus: 'Connected 🟢',
+    aiStatus: 'Ready (Gemini / OpenAI Engine) 🟢'
+  });
+
+  const [transactionsList, setTransactionsList] = useState([
+    { txnId: 'TXN-98421', candidateId: 'USR-101', candidateName: 'Rajesh Kumar Sharma', amount: 1000, companyCut: 200, metaPayout: 800, date: 'Today, 2:40 PM', mode: 'UPI (PhonePe / GPay)', status: 'Completed 🟢' },
+    { txnId: 'TXN-98420', candidateId: 'USR-102', candidateName: 'Sanjay Yadav', amount: 400, companyCut: 80, metaPayout: 320, date: 'Today, 1:15 PM', mode: 'Bank QR', status: 'Completed 🟢' },
+    { txnId: 'TXN-98419', candidateId: 'USR-104', candidateName: 'Amitabh Shukla', amount: 2500, companyCut: 500, metaPayout: 2000, date: 'Yesterday, 6:30 PM', mode: 'NetBanking', status: 'Completed 🟢' },
+    { txnId: 'TXN-98418', candidateId: 'USR-103', candidateName: 'Priya Chaudhary', amount: 1500, companyCut: 300, metaPayout: 1200, date: 'Yesterday, 3:10 PM', mode: 'UPI (GPay)', status: 'Completed 🟢' },
+    { txnId: 'TXN-98417', candidateId: 'USR-118', candidateName: 'Virendra Singh Rathore', amount: 5000, companyCut: 1000, metaPayout: 4000, date: '24 Oct 2026', mode: 'RTGS / NEFT', status: 'Completed 🟢' }
+  ]);
+
+  const symbolsList = [
+    { name: 'Car', icon: '🚗' },
+    { name: 'Tractor', icon: '🚜' },
+    { name: 'Cricket Bat', icon: '🏏' },
+    { name: 'Computer', icon: '💻' },
+    { name: 'Ceiling Fan', icon: '🪭' },
+    { name: 'Fountain Pen', icon: '✒️' },
+  ];
+
+  const postList = [
+    'Village Head (Gram Pradhan)',
+    'Ward Councillor / Corporator',
+    'Block Development Council (BDC)',
+    'Block President (Pramukh)',
+    'District Board Member (Zila Panchayat)',
+    'Member of Legislative Assembly (MLA)'
+  ];
+  // --- Boss Suite Handlers ---
+  const handleToggleCandidateStatus = (candidateId) => {
+    setCandidatesDirectory(candidatesDirectory.map(cand => {
+      if (cand.id === candidateId) {
+        const nextStatus = cand.status === 'Active' ? 'Suspended' : 'Active';
+        setToastMessage(`Candidate ${cand.name} status updated to ${nextStatus}!`);
+        setShowSuccessToast(true);
+        setTimeout(() => setShowSuccessToast(false), 3500);
+        return { ...cand, status: nextStatus };
+      }
+      return cand;
+    }));
+  };
+
+  const handleImpersonateCandidate = (cand) => {
+    setObCandidateName(cand.name);
+    setObPost(cand.post);
+    setObGaonWard(cand.ward);
+    setObPincode(cand.pincode);
+    setObMobile(cand.phone);
+    setObSymbol(cand.symbol);
+    setCurrentView('dashboard');
+    setDashboardTab('overview');
+    setToastMessage(`Switched to ${cand.name}'s War-Room (Admin Impersonation Mode)`);
+    setShowSuccessToast(true);
+    setTimeout(() => setShowSuccessToast(false), 4000);
+  };
+
+  const handleTestMetaConnection = () => {
+    setApiHealthState(prev => ({ ...prev, isTesting: true }));
+    setTimeout(() => {
+      setApiHealthState(prev => ({ ...prev, isTesting: false, metaLatency: Math.floor(Math.random() * 40) + 110 }));
+      setToastMessage('Meta Graph API v19.0 Handshake Successful! (Token Active)');
+      setShowSuccessToast(true);
+      setTimeout(() => setShowSuccessToast(false), 3500);
+    }, 700);
+  };
+
+  const handleCreateNewPlan = () => {
+    if (!newPlanName) {
+      alert('Please enter a Plan Name');
+      return;
+    }
+    const newPlan = {
+      id: `plan_${Date.now()}`,
+      name: newPlanName,
+      price: Number(newPlanPrice),
+      dailyAdLimit: Number(newPlanDailyLimit),
+      usersCount: 0,
+      badge: 'Custom',
+      features: newPlanFeatures.split(',').map(f => f.trim()).filter(Boolean)
+    };
+    setSubscriptionPlans([...subscriptionPlans, newPlan]);
+    setIsCreatePlanModalOpen(false);
+    setNewPlanName('');
+    setToastMessage(`New Plan "${newPlan.name}" Created Successfully!`);
+    setShowSuccessToast(true);
+    setTimeout(() => setShowSuccessToast(false), 3500);
+  };
+
+  const handleSaveCommissionPolicy = () => {
+    setToastMessage(`Platform Margin Policy Saved at ${companyMarginPct}% Company Cut!`);
+    setShowSuccessToast(true);
+    setTimeout(() => setShowSuccessToast(false), 3500);
+  };
+
+
+
+  // Open Create Ad Modal handler
+  const handleOpenCreateAdModal = () => {
+    setModalError('');
+    setModalPhoto(obPhotoPreview);
+    setModalSymbol(obSymbol);
+    setModalCustomSymbol(customSymbolPreview);
+    setModalArea(obGaonWard);
+    setModalPincode(obPincode);
+    setModalPhone(obMobile);
+    setIsCreateAdModalOpen(true);
+  };
+
+  // Handle Sign-Up Submission
+  const handleSignUpSubmit = (e) => {
+    e.preventDefault();
+    setRegError('');
+
+    if (!regFullName.trim()) {
+      setRegError('Please enter your full name.');
+      return;
+    }
+    if (!regMobile.trim() || regMobile.length < 10) {
+      setRegError('Please enter a valid 10-digit mobile number.');
+      return;
+    }
+    if (!regEmail.trim() || !regEmail.includes('@')) {
+      setRegError('Please enter a valid email address.');
+      return;
+    }
+    if (!regPassword || regPassword.length < 6) {
+      setRegError('Password must be at least 6 characters.');
+      return;
+    }
+    if (regPassword !== regConfirmPassword) {
+      setRegError('Passwords do not match.');
+      return;
+    }
+
+    // Success -> update profile and move to Onboarding Wizard
+    setObCandidateName(regFullName);
+    setObMobile(regMobile);
+    setObEmail(regEmail);
+    setDisclaimerText(`Paid for by: ${regFullName} Campaign`);
+    setIsAuthModalOpen(false);
+    setOnboardingStep(1);
+    setCurrentView('onboarding');
+  };
+
+  // Candidate Submits New Ad (Goes to Admin Approval & Quick Fix Studio first!)
+  const handlePublishAdFromModal = () => {
+    // Input Validation (VALIDATION-01)
+    const cleanTitle = (modalTitle || '').trim();
+    if (cleanTitle.length < 2) {
+      setModalError('Campaign Title must be at least 2 characters.');
+      return;
+    }
+
+    const cleanSlogan = (modalSlogan || '').trim();
+    if (cleanSlogan.length < 3) {
+      setModalError('Political Slogan must be at least 3 characters.');
+      return;
+    }
+
+    const cleanArea = (modalArea || '').trim();
+    if (cleanArea.length < 2) {
+      setModalError('Target Area / Ward must be at least 2 characters.');
+      return;
+    }
+
+    let cleanPhone = (modalPhone || '').replace(/\D/g, '');
+    if (cleanPhone.startsWith('91') && cleanPhone.length === 12) {
+      cleanPhone = cleanPhone.slice(2);
+    }
+    if (cleanPhone.length !== 10 || !['6', '7', '8', '9'].includes(cleanPhone[0])) {
+      setModalError('Please enter a valid 10-digit Indian WhatsApp number (e.g. 9876543210).');
+      return;
+    }
+
+    const cleanPincode = (modalPincode || '').trim();
+    if (!/^\d{6}$/.test(cleanPincode)) {
+      setModalError('Pincode must be exactly 6 numeric digits (e.g. 281306).');
+      return;
+    }
+
+    if (!modalDailyBudget || Number(modalDailyBudget) < 200) {
+      setModalError('Daily ad budget must be at least ₹200.');
+      return;
+    }
+
+    if (!modalRadius || Number(modalRadius) < 3 || Number(modalRadius) > 40) {
+      setModalError('Target radius must be between 3 km and 40 km.');
+      return;
+    }
+
+    setModalError('');
+    const newPendingReviewAd = {
+      id: `review_${Date.now().toString().slice(-4)}`,
+      candidateName: obCandidateName,
+      post: obPost,
+      phone: modalPhone,
+      area: modalArea,
+      pincode: modalPincode,
+      budget: modalDailyBudget,
+      radius: modalRadius,
+      submittedDate: 'Just Now',
+      originalSlogan: modalSlogan,
+      enhancedSlogan: modalSlogan,
+      symbol: modalSymbol,
+      status: 'Pending Admin Review 🟡',
+      needsCorrection: false,
+      correctionNote: 'हमारी एक्सपर्ट टीम समीक्षा कर रही है'
+    };
+
+    setAdminPendingAds([newPendingReviewAd, ...adminPendingAds]);
+
+    const candidateViewAd = {
+      id: newPendingReviewAd.id,
+      title: modalTitle || `${modalArea} Campaign`,
+      post: obPost,
+      budget: modalDailyBudget,
+      radius: modalRadius,
+      reach: 0,
+      spent: 0,
+      clicks: 0,
+      status: 'Under Company Review 🟡',
+      badge: '⏳ Experts Reviewing & Enhancing',
+      template: modalTemplate,
+      date: 'Just Now',
+      candidateName: obCandidateName,
+      slogan: modalSlogan
+    };
+
+    setActiveCampaigns([candidateViewAd, ...activeCampaigns]);
+    setIsCreateAdModalOpen(false);
+    setToastMessage('एड सबमिट हुआ! कंपनी की टीम इसे ठीक व सुंदर बनाकर Meta पर लाइव करेगी।');
+    setShowSuccessToast(true);
+    setDashboardTab('ads_manager');
+
+    setTimeout(() => setShowSuccessToast(false), 4500);
+  };
+
+  // ADMIN ACTION: Fix, Enhance & Approve to Meta!
+  const handleAdminApproveAndPushToMeta = (reviewAd) => {
+    setAdminPendingAds(adminPendingAds.filter(a => a.id !== reviewAd.id));
+
+    const updated = activeCampaigns.map(c => {
+      if (c.id === reviewAd.id) {
+        return {
+          ...c,
+          status: 'Live 🟢',
+          badge: '✨ PolitiAds Team Enhanced & Live',
+          slogan: reviewAd.enhancedSlogan,
+          reach: Math.round(reviewAd.budget * 32)
+        };
+      }
+      return c;
+    });
+
+    if (!activeCampaigns.some(c => c.id === reviewAd.id)) {
+      updated.unshift({
+        id: reviewAd.id,
+        title: `${reviewAd.area} Official Push`,
+        post: reviewAd.post,
+        budget: reviewAd.budget,
+        radius: reviewAd.radius,
+        reach: Math.round(reviewAd.budget * 32),
+        spent: 0,
+        clicks: 0,
+        status: 'Live 🟢',
+        badge: '✨ PolitiAds Team Enhanced & Live',
+        template: 1,
+        date: 'Today',
+        candidateName: reviewAd.candidateName,
+        slogan: reviewAd.enhancedSlogan
+      });
+    }
+
+    setActiveCampaigns(updated);
+    setToastMessage(`✓ ${reviewAd.candidateName} का विज्ञापन सुधारा गया और Meta पर लाइव कर दिया गया!`);
+    setShowSuccessToast(true);
+    setTimeout(() => setShowSuccessToast(false), 4000);
+  };
+
+  return (
+    <div className="min-h-screen bg-white text-gray-900 font-sans selection:bg-emerald-500 selection:text-white">
+
+      {/* Global Toast Notification */}
+      {showSuccessToast && (
+        <div className="fixed bottom-6 right-6 z-50 bg-gray-950 text-white px-5 py-3.5 rounded-2xl shadow-2xl border border-emerald-500/30 flex items-center gap-3 transition-all animate-in fade-in slide-in-from-bottom-3">
+          <div className="w-8 h-8 rounded-xl bg-emerald-500 text-gray-950 flex items-center justify-center font-bold">
+            <CheckCircle2 className="w-5 h-5 text-gray-950" />
+          </div>
+          <div>
+            <h5 className="text-xs font-bold">{toastMessage || 'Saved Successfully!'}</h5>
+            <p className="text-[11px] text-gray-300">Synchronized with PolitiAds Engine & Meta API.</p>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================
+          1. AUTH MODAL (Login & Sign Up)
+      ======================================================== */}
+      {isAuthModalOpen && (
+        <div className="fixed inset-0 z-50 bg-gray-950/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white w-full max-w-md rounded-3xl p-7 sm:p-9 border border-gray-200 shadow-2xl relative my-8">
+            <button 
+              onClick={() => setIsAuthModalOpen(false)}
+              className="absolute top-6 right-6 p-2 rounded-full text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="flex items-center gap-2.5 mb-4">
+              <div className="w-8 h-8 rounded-lg bg-gray-950 flex items-center justify-center shadow-sm">
+                <Megaphone className="w-4 h-4 text-white" />
+              </div>
+              <span className="text-xl font-black text-gray-950">
+                Politi<span className="text-emerald-600">Ads</span>
+              </span>
+            </div>
+
+            <h2 className="text-2xl font-bold text-gray-950 tracking-tight">
+              {authMode === 'signup' ? 'Create Candidate Account' : 'Log In to War-Room'}
+            </h2>
+            <p className="text-xs text-gray-500 mt-1 mb-6">
+              {authMode === 'signup' 
+                ? 'Launch targeted Instagram & Facebook election campaigns in 2 minutes.' 
+                : 'Access your active voter analytics, opponent spy, and ad manager.'}
+            </p>
+
+            {regError && (
+              <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 text-xs text-red-700 flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{regError}</span>
+              </div>
+            )}
+
+            {/* SIGN UP FORM (5 FIELDS) */}
+            {authMode === 'signup' ? (
+              <form onSubmit={handleSignUpSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">1. Full Name (पूरा नाम)*</label>
+                  <input 
+                    type="text"
+                    value={regFullName}
+                    onChange={(e) => setRegFullName(e.target.value)}
+                    placeholder="e.g. Rajesh Kumar Sharma"
+                    className="w-full bg-[#fafafa] border border-gray-300 rounded-xl px-3.5 py-2.5 text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">2. Mobile Number (WhatsApp Active)*</label>
+                  <div className="relative flex">
+                    <span className="inline-flex items-center px-3 rounded-l-xl border border-r-0 border-gray-300 bg-gray-100 text-gray-600 text-xs font-semibold">🇮🇳 +91</span>
+                    <input 
+                      type="tel"
+                      maxLength={10}
+                      value={regMobile}
+                      onChange={(e) => setRegMobile(e.target.value.replace(/\D/g, ''))}
+                      placeholder="9876543210"
+                      className="w-full bg-[#fafafa] border border-gray-300 rounded-r-xl px-3.5 py-2.5 text-sm"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">3. Email Address*</label>
+                  <input 
+                    type="email"
+                    value={regEmail}
+                    onChange={(e) => setRegEmail(e.target.value)}
+                    placeholder="rajesh@campaign.in"
+                    className="w-full bg-[#fafafa] border border-gray-300 rounded-xl px-3.5 py-2.5 text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">4. Password*</label>
+                  <input 
+                    type="password"
+                    value={regPassword}
+                    onChange={(e) => setRegPassword(e.target.value)}
+                    placeholder="Minimum 6 characters"
+                    className="w-full bg-[#fafafa] border border-gray-300 rounded-xl px-3.5 py-2.5 text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">5. Re-enter Password*</label>
+                  <input 
+                    type="password"
+                    value={regConfirmPassword}
+                    onChange={(e) => setRegConfirmPassword(e.target.value)}
+                    placeholder="Repeat identical password"
+                    className="w-full bg-[#fafafa] border border-gray-300 rounded-xl px-3.5 py-2.5 text-sm"
+                  />
+                </div>
+
+                <button 
+                  type="submit"
+                  className="w-full mt-2 py-3.5 rounded-full font-bold text-gray-950 bg-[#bbf7d0] hover:bg-[#86efac] transition shadow-md text-sm flex items-center justify-center gap-2"
+                >
+                  Create Account & Go to Onboarding →
+                </button>
+              </form>
+            ) : (
+              // LOGIN MODE (Includes 1-Click Demo Logins)
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Mobile or Email</label>
+                  <input type="text" defaultValue="9876543210" className="w-full bg-[#fafafa] border border-gray-300 rounded-xl px-3.5 py-2.5 text-sm" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Password</label>
+                  <input type="password" defaultValue="secret123" className="w-full bg-[#fafafa] border border-gray-300 rounded-xl px-3.5 py-2.5 text-sm" />
+                </div>
+
+                <button 
+                  onClick={() => {
+                    setIsAuthModalOpen(false);
+                    setCurrentView('dashboard');
+                    setDashboardTab('overview');
+                  }}
+                  className="w-full py-3.5 rounded-full font-bold text-gray-950 bg-[#bbf7d0] hover:bg-[#86efac] transition text-sm shadow-md"
+                >
+                  Log In to Candidate Dashboard
+                </button>
+
+                {/* 1-Click Demo Buttons */}
+                <div className="pt-3 border-t border-gray-100 space-y-2">
+                  <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider text-center">Quick Demo Access</p>
+                  
+                  <button
+                    onClick={() => {
+                      setIsAuthModalOpen(false);
+                      setCurrentView('dashboard');
+                      setDashboardTab('overview');
+                    }}
+                    className="w-full py-2.5 rounded-xl text-xs font-bold text-gray-800 bg-gray-100 hover:bg-gray-200 transition flex items-center justify-center gap-2"
+                  >
+                    <User className="w-4 h-4 text-emerald-600" />
+                    Enter as Candidate: Rajesh Kumar Sharma
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setIsAuthModalOpen(false);
+                      setCurrentView('admin');
+                      setAdminTab('approvals_studio');
+                    }}
+                    className="w-full py-2.5 rounded-xl text-xs font-bold text-slate-900 bg-amber-400 hover:bg-amber-300 transition flex items-center justify-center gap-2"
+                  >
+                    <ShieldCheck className="w-4 h-4 text-slate-950" />
+                    Enter as Super Admin (Ad Quick-Fix Hub)
+                  </button>
+                </div>
+              </div>
+            )}
+
+            <div className="mt-6 pt-4 border-t border-gray-100 text-center text-xs text-gray-500">
+              {authMode === 'signup' ? (
+                <span>
+                  Already have an account?{' '}
+                  <button onClick={() => { setAuthMode('login'); setRegError(''); }} className="font-bold text-emerald-700 hover:underline">
+                    Log in here
+                  </button>
+                </span>
+              ) : (
+                <span>
+                  Don't have an account yet?{' '}
+                  <button onClick={() => { setAuthMode('signup'); setRegError(''); }} className="font-bold text-emerald-700 hover:underline">
+                    Create free account
+                  </button>
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================
+          2. LANDING PAGE (DEFAULT VIEW ON LOAD)
+      ======================================================== */}
+      {currentView === 'landing' && (
+        <div className="min-h-screen">
+          
+          {/* Top Commit Banner */}
+          <div className="bg-[#0b1320] text-gray-200 text-xs py-2.5 px-4 text-center border-b border-gray-800">
+            <div className="max-w-7xl mx-auto flex items-center justify-center gap-3">
+              <span className="font-bold tracking-wider text-emerald-400 uppercase text-[10px] bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-800">
+                Chess Model 2.0
+              </span>
+              <span className="text-gray-300">
+                Real-time Meta Ad Library competitor tracking is now live for all Indian local elections.
+              </span>
+              <a href="#chess-model" className="underline font-semibold text-white hover:text-emerald-400 transition ml-1">
+                Explore moves →
+              </a>
+            </div>
+          </div>
+
+          {/* Clean Public Navbar (Buffer Style - NO Cluttered Demo Buttons) */}
+          <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-100">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+              
+              {/* Logo */}
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-lg bg-gray-950 flex items-center justify-center shadow-sm">
+                  <Megaphone className="w-5 h-5 text-white" />
+                </div>
+                <span className="text-2xl font-black tracking-tight text-gray-950 flex items-center">
+                  Politi<span className="text-emerald-600">Ads</span>
+                </span>
+              </div>
+
+              {/* Navigation Links */}
+              <nav className="hidden md:flex items-center gap-7 text-[15px] font-medium text-gray-700">
+                <a href="#simulator" className="hover:text-gray-950 transition">Ad Simulator</a>
+                <a href="#chess-model" className="hover:text-gray-950 transition">Chess Model</a>
+                <a href="#pricing" className="hover:text-gray-950 transition">Pricing</a>
+                <a href="#faq" className="hover:text-gray-950 transition">FAQ</a>
+              </nav>
+
+              {/* Action Buttons: Log In & Get Started */}
+              <div className="flex items-center gap-3">
+                <button 
+                  onClick={() => { setAuthMode('login'); setIsAuthModalOpen(true); }}
+                  className="px-5 py-2.5 text-sm font-semibold text-gray-800 hover:text-gray-950 transition"
+                >
+                  Log in
+                </button>
+                <button 
+                  onClick={() => { setAuthMode('signup'); setIsAuthModalOpen(true); }}
+                  className="px-6 py-2.5 rounded-full text-sm font-semibold text-gray-950 bg-[#bbf7d0] hover:bg-[#86efac] transition shadow-sm"
+                >
+                  Get started for free
+                </button>
+              </div>
+            </div>
+          </header>
+
+          {/* Hero Section */}
+          <section className="relative pt-16 pb-24 md:pt-24 md:pb-36 bg-[#fafafa] bg-grid-pattern border-b border-gray-200/80 overflow-hidden">
+            {/* Orbiting Floating Badges */}
+            <div className="hidden lg:flex absolute top-12 left-12 animate-float-1 items-center justify-center w-14 h-14 bg-white rounded-2xl shadow-xl border border-gray-100">
+              <div className="w-9 h-9 rounded-xl bg-[#1877F2] text-white flex items-center justify-center font-bold text-xl">f</div>
+            </div>
+            <div className="hidden lg:flex absolute top-28 left-48 animate-float-2 items-center justify-center w-12 h-12 bg-white rounded-2xl shadow-lg border border-gray-100">
+              <span className="text-2xl">📸</span>
+            </div>
+            <div className="hidden lg:flex absolute bottom-20 left-24 animate-float-3 items-center justify-center w-14 h-14 bg-white rounded-2xl shadow-xl border border-gray-100">
+              <div className="w-9 h-9 rounded-xl bg-[#25D366] text-white flex items-center justify-center text-lg">💬</div>
+            </div>
+            <div className="hidden lg:flex absolute top-16 right-16 animate-float-1 items-center justify-center w-14 h-14 bg-white rounded-2xl shadow-xl border border-gray-100">
+              <div className="w-9 h-9 rounded-xl bg-[#0081FB] text-white flex items-center justify-center text-lg">🔍</div>
+            </div>
+            <div className="hidden lg:flex absolute top-36 right-48 animate-float-2 items-center justify-center w-12 h-12 bg-white rounded-2xl shadow-lg border border-gray-100">
+              <span className="text-xl">🗳️</span>
+            </div>
+            <div className="hidden lg:flex absolute bottom-20 right-28 animate-float-3 items-center justify-center w-14 h-14 bg-white rounded-2xl shadow-xl border border-gray-100">
+              <div className="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center">
+                <ShieldCheck className="w-5 h-5" />
+              </div>
+            </div>
+
+            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+              <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold text-gray-950 tracking-tight leading-[1.08]">
+                Your political ads workspace
+              </h1>
+
+              <p className="mt-6 text-xl text-gray-600 max-w-2xl mx-auto font-normal leading-relaxed">
+                Works with every candidate you back, and launches sponsored Instagram and Facebook campaigns in under 2 minutes.
+              </p>
+
+              {/* Buffer Signature Pill Input Bar */}
+              <div className="mt-10 max-w-md mx-auto">
+                <div className="flex flex-col sm:flex-row items-center bg-white p-1.5 rounded-full border border-gray-300 shadow-xl focus-within:border-gray-500 transition">
+                  <input 
+                    type="text" 
+                    placeholder="Enter your mobile number..."
+                    className="w-full sm:w-auto flex-1 px-5 py-3 text-sm text-gray-900 bg-transparent outline-none placeholder-gray-400"
+                  />
+                  <button 
+                    type="button"
+                    onClick={() => { setAuthMode('signup'); setIsAuthModalOpen(true); }}
+                    className="w-full sm:w-auto mt-2 sm:mt-0 px-6 py-3 rounded-full text-sm font-semibold text-gray-950 bg-[#bbf7d0] hover:bg-[#86efac] transition flex items-center justify-center gap-1.5 shrink-0 shadow-sm"
+                  >
+                    Get started for free
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                </div>
+                <p className="text-xs text-gray-500 mt-3 flex items-center justify-center gap-3">
+                  <span>✓ ₹200 min daily budget</span>
+                  <span>•</span>
+                  <span>✓ 100% Meta & ECI Compliant</span>
+                  <span>•</span>
+                  <span>✓ 2-Minute Setup</span>
+                </p>
+              </div>
+            </div>
+          </section>
+
+          {/* Interactive Ad Simulator */}
+          <section id="simulator" className="py-24 bg-white border-b border-gray-100">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="text-center max-w-3xl mx-auto mb-16">
+                <span className="text-emerald-700 font-mono text-xs font-bold tracking-widest uppercase bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
+                  Interactive Campaign Creator
+                </span>
+                <h2 className="text-3xl sm:text-4xl font-bold text-gray-950 mt-3 tracking-tight">
+                  Test drive the 2-minute campaign launcher
+                </h2>
+                <p className="text-gray-600 mt-2 text-base">
+                  Enter candidate details below. Watch the live mobile ad preview dynamically render on the right.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
+                <div className="lg:col-span-7 bg-[#fafafa] p-7 sm:p-9 rounded-3xl border border-gray-200 shadow-sm space-y-5">
+                  <div className="flex items-center justify-between pb-4 border-b border-gray-200">
+                    <h3 className="text-base font-bold text-gray-950 flex items-center gap-2">
+                      <Sliders className="w-5 h-5 text-emerald-600" />
+                      Live Form Simulator
+                    </h3>
+                    <button 
+                      onClick={() => { setAuthMode('signup'); setIsAuthModalOpen(true); }}
+                      className="text-xs font-bold px-3 py-1.5 rounded-full bg-emerald-100 text-emerald-800 hover:bg-emerald-200 transition"
+                    >
+                      + Create Account & Launch
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1">Candidate Name</label>
+                      <input 
+                        type="text" 
+                        value={simName}
+                        onChange={(e) => setSimName(e.target.value)}
+                        className="w-full bg-white border border-gray-300 rounded-xl px-3.5 py-2 text-sm text-gray-900"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1">WhatsApp Mobile</label>
+                      <input 
+                        type="text" 
+                        value={simPhone}
+                        onChange={(e) => setSimPhone(e.target.value)}
+                        className="w-full bg-white border border-gray-300 rounded-xl px-3.5 py-2 text-sm text-gray-900"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1">Target Area / Ward</label>
+                      <input 
+                        type="text" 
+                        value={simArea}
+                        onChange={(e) => setSimArea(e.target.value)}
+                        className="w-full bg-white border border-gray-300 rounded-xl px-3.5 py-2 text-sm text-gray-900"
+                      />
+                    </div>
+                    <div>
+                      <div className="flex justify-between items-center mb-1">
+                        <label className="text-xs font-semibold text-gray-700">Radius:</label>
+                        <span className="text-xs font-bold text-emerald-700">{simRadius} km</span>
+                      </div>
+                      <input 
+                        type="range" 
+                        min="3" 
+                        max="40" 
+                        value={simRadius}
+                        onChange={(e) => setSimRadius(Number(e.target.value))}
+                        className="w-full accent-emerald-600"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-2">Chunav Chinh</label>
+                    <div className="grid grid-cols-6 gap-2">
+                      {symbolsList.map((sym, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => setSimSymbol(sym.name)}
+                          className={`p-2 rounded-xl border text-center transition ${
+                            simSymbol === sym.name 
+                              ? 'bg-emerald-50 border-emerald-500 font-bold' 
+                              : 'bg-white border-gray-200'
+                          }`}
+                        >
+                          <span className="text-xl block">{sym.icon}</span>
+                          <span className="text-[10px] truncate block">{sym.name}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="flex justify-between items-center mb-1">
+                      <label className="text-xs font-semibold text-gray-700">Daily Budget:</label>
+                      <span className="text-sm font-black text-emerald-700">₹{simBudget} / day</span>
+                    </div>
+                    <input 
+                      type="range" 
+                      min="200" 
+                      max="5000" 
+                      step="100"
+                      value={simBudget}
+                      onChange={(e) => setSimBudget(Number(e.target.value))}
+                      className="w-full accent-emerald-600"
+                    />
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => { setAuthMode('signup'); setIsAuthModalOpen(true); }}
+                    className="w-full py-3.5 rounded-full font-bold text-gray-950 bg-[#bbf7d0] hover:bg-[#86efac] shadow-md transition flex items-center justify-center gap-2 text-sm"
+                  >
+                    <Vote className="w-4 h-4" />
+                    Sign Up to Launch Live to Meta
+                  </button>
+                </div>
+
+                {/* Right: Phone Live Feed */}
+                <div className="lg:col-span-5 flex flex-col items-center">
+                  <div className="text-xs font-semibold text-gray-500 mb-3">Live Feed Rendering</div>
+                  <div className="w-full max-w-[310px] rounded-[36px] bg-white p-3.5 border-8 border-gray-900 shadow-2xl">
+                    <div className="w-24 h-3 bg-gray-900 rounded-b-lg mx-auto mb-2"></div>
+                    <div className="bg-white rounded-xl overflow-hidden border border-gray-200 text-xs">
+                      <div className="p-2 flex items-center justify-between border-b border-gray-100">
+                        <div className="flex items-center gap-2">
+                          <div className="w-7 h-7 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-xs">
+                            {simName.charAt(0)}
+                          </div>
+                          <div>
+                            <p className="font-bold text-gray-950 text-[11px] truncate max-w-[130px]">{simName}</p>
+                            <p className="text-[9px] text-gray-400">Sponsored · {simArea}</p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="h-48 p-3 text-white flex flex-col justify-between bg-gradient-to-br from-emerald-800 to-slate-950">
+                        <div className="flex justify-between items-start">
+                          <span className="bg-black/60 px-2 py-0.5 rounded text-[9px] font-bold text-yellow-300">Candidate</span>
+                          <span className="text-base">{symbolsList.find(s => s.name === simSymbol)?.icon || '🚗'}</span>
+                        </div>
+                        <div className="text-center">
+                          <h5 className="font-extrabold text-sm drop-shadow">{simName}</h5>
+                          <p className="text-[10px] text-yellow-300 drop-shadow">"आपका विश्वास, हमारा संकल्प"</p>
+                        </div>
+                        <div className="bg-black/60 p-1.5 rounded flex justify-between text-[10px]">
+                          <span>चिन्ह: {simSymbol}</span>
+                          <span className="text-emerald-400 font-bold">{simArea}</span>
+                        </div>
+                      </div>
+                      <div className="px-2 py-1 bg-gray-50 text-[8px] text-gray-400 truncate">
+                        Paid for by: {simName} Campaign
+                      </div>
+                      <div className="p-2 bg-white flex items-center justify-between border-t border-gray-100">
+                        <span className="text-[10px] font-bold text-gray-900">समर्थन करें</span>
+                        <span className="px-2.5 py-1 rounded bg-[#25D366] text-white font-bold text-[10px]">WhatsApp</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Chess Model Section */}
+          <section id="chess-model" className="py-24 bg-[#fafafa] border-b border-gray-200/80">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="text-center max-w-3xl mx-auto mb-16">
+                <span className="text-emerald-700 font-mono text-xs font-bold tracking-widest uppercase bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
+                  Strategic Framework
+                </span>
+                <h2 className="text-3xl sm:text-4xl font-bold text-gray-950 mt-3 tracking-tight">The Political "Chess Model"</h2>
+                <p className="text-gray-600 mt-2 text-base">Elections are won by strategic moves and counter-moves on a 64-square board:</p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="p-7 rounded-3xl bg-white border border-gray-200 shadow-sm">
+                  <div className="w-12 h-12 rounded-2xl bg-gray-100 flex items-center justify-center mb-5 text-2xl">♟️</div>
+                  <span className="text-[11px] font-mono font-bold text-emerald-700 uppercase">Level 1: Pawn Opening</span>
+                  <h3 className="text-lg font-bold text-gray-950 mt-1 mb-2">Ward & Booth Mapping</h3>
+                  <p className="text-xs text-gray-600">Partition your constituency into Safe, Swing, and Battleground clusters for targeted spending.</p>
+                </div>
+                <div className="p-7 rounded-3xl bg-white border border-gray-200 shadow-sm">
+                  <div className="w-12 h-12 rounded-2xl bg-gray-100 flex items-center justify-center mb-5 text-2xl">♞</div>
+                  <span className="text-[11px] font-mono font-bold text-emerald-700 uppercase">Level 2: Knight Recon</span>
+                  <h3 className="text-lg font-bold text-gray-950 mt-1 mb-2">Opponent Ad Spy</h3>
+                  <p className="text-xs text-gray-600">Live 24x7 tracking of competitor ad spend and active creatives via Meta Ad Library API.</p>
+                </div>
+                <div className="p-7 rounded-3xl bg-white border border-gray-200 shadow-sm">
+                  <div className="w-12 h-12 rounded-2xl bg-gray-100 flex items-center justify-center mb-5 text-2xl">♜</div>
+                  <span className="text-[11px] font-mono font-bold text-emerald-700 uppercase">Level 3: Rook Strike</span>
+                  <h3 className="text-lg font-bold text-gray-950 mt-1 mb-2">Instant Counter-Ads</h3>
+                  <p className="text-xs text-gray-600">Counter opponent negative narratives with AI-assisted factual counter-creatives.</p>
+                </div>
+                <div className="p-7 rounded-3xl bg-white border border-gray-200 shadow-sm">
+                  <div className="w-12 h-12 rounded-2xl bg-gray-100 flex items-center justify-center mb-5 text-2xl">♛</div>
+                  <span className="text-[11px] font-mono font-bold text-emerald-700 uppercase">Level 4: Endgame</span>
+                  <h3 className="text-lg font-bold text-gray-950 mt-1 mb-2">48-Hour GOTV Blitz</h3>
+                  <p className="text-xs text-gray-600">Aggressive polling-day Get Out The Vote push delivering booth guides to voters.</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Pricing Section */}
+          <section id="pricing" className="py-24 bg-white border-b border-gray-100">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="text-center max-w-3xl mx-auto mb-16">
+                <span className="text-emerald-700 font-mono text-xs font-bold tracking-widest uppercase bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
+                  Transparent Pricing
+                </span>
+                <h2 className="text-3xl sm:text-4xl font-bold text-gray-950 mt-3 tracking-tight">Pre-built packets for every election level</h2>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div className="p-8 rounded-3xl bg-[#fafafa] border border-gray-200 flex flex-col justify-between">
+                  <div>
+                    <span className="text-xs font-bold text-gray-500 uppercase">Ward & Panchayat</span>
+                    <h3 className="text-2xl font-bold text-gray-950 mt-1">Gram Pradhan & Ward</h3>
+                    <p className="text-3xl font-black text-gray-950 mt-4">₹1,999 <span className="text-xs text-gray-500">/ mo</span></p>
+                    <ul className="space-y-2.5 text-xs text-gray-600 mt-6">
+                      <li>• Starting from ₹200/day ad spend</li>
+                      <li>• 3km to 10km radius targeting</li>
+                      <li>• 5 pre-approved banner templates</li>
+                    </ul>
+                  </div>
+                  <button onClick={() => { setAuthMode('signup'); setIsAuthModalOpen(true); }} className="w-full mt-8 py-3 rounded-full font-semibold text-xs bg-gray-900 text-white">Choose Plan</button>
+                </div>
+
+                <div className="p-8 rounded-3xl bg-white border-2 border-emerald-500 relative flex flex-col justify-between shadow-xl">
+                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-emerald-600 text-white text-[10px] font-bold uppercase tracking-wider py-1 px-4 rounded-full">Most Popular</div>
+                  <div>
+                    <span className="text-xs font-bold text-emerald-700 uppercase">Block & Town Council</span>
+                    <h3 className="text-2xl font-bold text-gray-950 mt-1">Block President & Chairman</h3>
+                    <p className="text-3xl font-black text-gray-950 mt-4">₹4,999 <span className="text-xs text-gray-500">/ mo</span></p>
+                    <ul className="space-y-2.5 text-xs text-gray-600 mt-6">
+                      <li>• 25km radius targeting</li>
+                      <li>• AI Video Reels & Poster Generator</li>
+                      <li>• Daily WhatsApp report dispatch</li>
+                    </ul>
+                  </div>
+                  <button onClick={() => { setAuthMode('signup'); setIsAuthModalOpen(true); }} className="w-full mt-8 py-3 rounded-full font-bold text-xs bg-[#bbf7d0] hover:bg-[#86efac] text-gray-950 shadow">Get Started</button>
+                </div>
+
+                <div className="p-8 rounded-3xl bg-[#fafafa] border border-gray-200 flex flex-col justify-between">
+                  <div>
+                    <span className="text-xs font-bold text-gray-500 uppercase">Assembly & State</span>
+                    <h3 className="text-2xl font-bold text-gray-950 mt-1">MLA Grandmaster Pack</h3>
+                    <p className="text-3xl font-black text-gray-950 mt-4">₹14,999 <span className="text-xs text-gray-500">/ mo</span></p>
+                    <ul className="space-y-2.5 text-xs text-gray-600 mt-6">
+                      <li>• Full 4-Tier Chess Model</li>
+                      <li>• Real-time Opponent Spy alerts</li>
+                      <li>• Dedicated Campaign Engineer</li>
+                    </ul>
+                  </div>
+                  <button onClick={() => { setAuthMode('signup'); setIsAuthModalOpen(true); }} className="w-full mt-8 py-3 rounded-full font-semibold text-xs bg-gray-900 text-white">Contact Sales</button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* FAQ Section */}
+          <section id="faq" className="py-20 bg-[#fafafa] border-b border-gray-200">
+            <div className="max-w-4xl mx-auto px-4 text-center">
+              <h2 className="text-3xl font-bold text-gray-950 mb-10">Frequently Asked Questions</h2>
+              <div className="space-y-4 text-left">
+                <div className="p-5 bg-white rounded-2xl border border-gray-200">
+                  <h4 className="text-sm font-bold text-gray-950 mb-1">Is ID verification required to run political ads on Meta?</h4>
+                  <p className="text-xs text-gray-500">Yes. Meta strictly mandates that every political advertiser must authorize with government ID (Aadhaar or Voter ID). Our flow makes it completely seamless.</p>
+                </div>
+                <div className="p-5 bg-white rounded-2xl border border-gray-200">
+                  <h4 className="text-sm font-bold text-gray-950 mb-1">Can I start with just ₹200/day?</h4>
+                  <p className="text-xs text-gray-500">Yes, you can run hyper-local ads in a 3-5 km radius starting with minimum ₹200/day.</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Clean Footer */}
+          <footer className="py-12 bg-white border-t border-gray-200 text-gray-500 text-xs">
+            <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded bg-gray-950 flex items-center justify-center text-white font-bold text-xs">P</div>
+                <span className="font-bold text-gray-900">PolitiAds SaaS</span>
+                <span>© 2026 All rights reserved</span>
+              </div>
+
+              <div className="flex items-center gap-6">
+                <button 
+                  onClick={() => { setAuthMode('login'); setIsAuthModalOpen(true); }}
+                  className="text-amber-800 font-bold hover:underline"
+                >
+                  Super Admin Login →
+                </button>
+                <a href="https://wa.me" target="_blank" rel="noreferrer" className="text-emerald-700 font-semibold flex items-center gap-1">
+                  <PhoneCall className="w-3.5 h-3.5" /> WhatsApp Support
+                </a>
+              </div>
+            </div>
+          </footer>
+        </div>
+      )}
+
+      {/* ========================================================
+          3. 4-STEP ONBOARDING WIZARD
+      ======================================================== */}
+      {currentView === 'onboarding' && (
+        <div className="min-h-screen bg-[#fafafa] bg-grid-pattern py-12 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-4xl mx-auto">
+            
+            {/* Header */}
+            <div className="flex items-center justify-between mb-8">
+              <div 
+                className="flex items-center gap-2 cursor-pointer"
+                onClick={() => setCurrentView('landing')}
+              >
+                <div className="w-7 h-7 rounded-lg bg-gray-950 flex items-center justify-center">
+                  <Megaphone className="w-3.5 h-3.5 text-white" />
+                </div>
+                <span className="font-black text-gray-950">Politi<span className="text-emerald-600">Ads</span></span>
+              </div>
+
+              <button 
+                onClick={() => setCurrentView('landing')}
+                className="text-xs font-semibold text-gray-500 hover:text-gray-900"
+              >
+                Exit to Home
+              </button>
+            </div>
+
+            <div className="text-center mb-8">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-gray-200 text-xs font-semibold text-gray-800 shadow-sm mb-3">
+                <Sparkles className="w-3.5 h-3.5 text-emerald-600" /> Candidate Onboarding Workspace
+              </div>
+              <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-950 tracking-tight">Complete Your Election Profile</h1>
+            </div>
+
+            {/* Stepper Indicator */}
+            <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm mb-8 flex items-center justify-between max-w-2xl mx-auto">
+              {[
+                { num: 1, label: 'Profile & Assets' },
+                { num: 2, label: 'Meta Account Link' },
+                { num: 3, label: 'Legal Disclaimer' },
+                { num: 4, label: 'Ready for Dashboard' }
+              ].map((s) => (
+                <div key={s.num} className="flex items-center gap-2">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs transition ${
+                    onboardingStep === s.num ? 'bg-gray-950 text-white shadow-sm ring-2 ring-emerald-500' : onboardingStep > s.num ? 'bg-emerald-600 text-white' : 'bg-gray-100 text-gray-400'
+                  }`}>
+                    {onboardingStep > s.num ? <Check className="w-4 h-4" /> : s.num}
+                  </div>
+                  <span className={`text-xs font-semibold hidden md:inline ${onboardingStep === s.num ? 'text-gray-950 font-bold' : 'text-gray-400'}`}>
+                    {s.label}
+                  </span>
+                  {s.num < 4 && <ChevronRight className="w-4 h-4 text-gray-300 ml-1 hidden sm:inline" />}
+                </div>
+              ))}
+            </div>
+
+            {/* Step 1: 7 Fields */}
+            {onboardingStep === 1 && (
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                <div className="lg:col-span-8 bg-white p-7 sm:p-9 rounded-3xl border border-gray-200 shadow-xl space-y-6">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-800 mb-1.5">1. Candidate Name (प्रत्याशी का नाम)*</label>
+                    <input type="text" value={obCandidateName} onChange={(e) => setObCandidateName(e.target.value)} className="w-full bg-[#fafafa] border border-gray-300 rounded-xl px-4 py-2.5 text-sm font-medium" />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-gray-800 mb-1.5">2. Candidate Photo (फोटो अपलोड)*</label>
+                    <div className="flex items-center gap-4 p-4 rounded-2xl bg-[#fafafa] border border-gray-200">
+                      <div className="w-16 h-16 rounded-2xl bg-white border border-gray-300 overflow-hidden shrink-0 flex items-center justify-center shadow-sm">
+                        {obPhotoPreview ? <img src={obPhotoPreview} alt="Candidate" className="w-full h-full object-cover" /> : <User className="w-7 h-7 text-gray-400" />}
+                      </div>
+                      <div className="flex-1">
+                        <input type="file" ref={fileInputRef} onChange={(e) => {
+                          const f = e.target.files[0];
+                          if (f) {
+                            const r = new FileReader();
+                            r.onloadend = () => setObPhotoPreview(r.result);
+                            r.readAsDataURL(f);
+                          }
+                        }} accept="image/*" className="hidden" />
+                        <button type="button" onClick={() => fileInputRef.current.click()} className="px-4 py-2 rounded-xl text-xs font-bold bg-white border border-gray-300 text-gray-800">
+                          Upload Photo
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-gray-800 mb-1.5">3. Gaon / Ward*</label>
+                      <input type="text" value={obGaonWard} onChange={(e) => setObGaonWard(e.target.value)} className="w-full bg-[#fafafa] border border-gray-300 rounded-xl px-4 py-2 text-sm" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-gray-800 mb-1.5">4. Area / Block*</label>
+                      <input type="text" value={obAreaBlock} onChange={(e) => setObAreaBlock(e.target.value)} className="w-full bg-[#fafafa] border border-gray-300 rounded-xl px-4 py-2 text-sm" />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-gray-800 mb-1.5">5. Pincode*</label>
+                      <input type="text" maxLength={6} value={obPincode} onChange={(e) => setObPincode(e.target.value.replace(/\D/g, ''))} className="w-full bg-[#fafafa] border border-gray-300 rounded-xl px-4 py-2 text-sm font-mono" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-gray-800 mb-1.5">6. Live Location*</label>
+                      <button type="button" onClick={() => setGpsLocation({ lat: '27.4482', lng: '78.0416', accuracy: 25 })} className="w-full py-2 px-4 rounded-xl text-xs font-bold bg-white border border-gray-300 text-gray-800">
+                        ✓ Location Detected
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-gray-800 mb-2">7. Chunav Chinh (चुनाव चिन्ह)*</label>
+                    <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                      {symbolsList.map((sym, idx) => (
+                        <button key={idx} type="button" onClick={() => setObSymbol(sym.name)} className={`p-2.5 rounded-xl border text-center ${obSymbol === sym.name ? 'border-emerald-600 bg-emerald-50 font-bold' : 'border-gray-200 bg-[#fafafa]'}`}>
+                          <span className="text-2xl">{sym.icon}</span>
+                          <span className="text-[11px] block mt-0.5">{sym.name}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <button type="button" onClick={() => setOnboardingStep(2)} className="w-full py-4 rounded-full font-bold text-gray-950 bg-[#bbf7d0] hover:bg-[#86efac] transition shadow-md text-sm flex items-center justify-center gap-2">
+                    Save Profile & Connect Meta →
+                  </button>
+                </div>
+
+                <div className="lg:col-span-4 bg-white rounded-3xl p-5 border border-gray-200 shadow-xl">
+                  <h4 className="font-bold text-gray-950 mb-3 text-sm">Preview Card</h4>
+                  <p className="text-xs text-gray-600">Candidate: <span className="font-bold text-gray-900">{obCandidateName}</span></p>
+                  <p className="text-xs text-gray-600 mt-1">Ward: <span className="font-semibold text-gray-900">{obGaonWard}</span></p>
+                  <p className="text-xs text-gray-600 mt-1">PIN: <span className="font-mono font-semibold text-gray-900">{obPincode}</span></p>
+                  <p className="text-xs text-gray-600 mt-1">Symbol: <span className="font-bold text-emerald-700">{obSymbol}</span></p>
+                </div>
+              </div>
+            )}
+
+            {/* Step 2 */}
+            {onboardingStep === 2 && (
+              <div className="max-w-2xl mx-auto bg-white p-8 rounded-3xl border border-gray-200 shadow-xl space-y-6">
+                <h3 className="text-xl font-bold text-gray-950">Step 2: Connect Facebook & Instagram</h3>
+                <div className="p-5 rounded-2xl bg-[#fafafa] border border-gray-200 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-[#1877F2] text-white flex items-center justify-center font-bold text-xl">f</div>
+                    <div><h4 className="text-sm font-bold text-gray-950">Meta OAuth 2.0</h4><p className="text-xs text-gray-500">Facebook Page & Instagram profile linked</p></div>
+                  </div>
+                  <span className="px-4 py-2 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">✓ Connected</span>
+                </div>
+                <div className="flex justify-between pt-2">
+                  <button onClick={() => setOnboardingStep(1)} className="text-xs font-semibold text-gray-600">← Back</button>
+                  <button onClick={() => setOnboardingStep(3)} className="px-8 py-3.5 rounded-full font-bold text-xs bg-[#bbf7d0] text-gray-950">Continue to Legal →</button>
+                </div>
+              </div>
+            )}
+
+            {/* Step 3 */}
+            {onboardingStep === 3 && (
+              <div className="max-w-2xl mx-auto bg-white p-8 rounded-3xl border border-gray-200 shadow-xl space-y-6">
+                <h3 className="text-xl font-bold text-gray-950">Step 3: Political Ad Disclaimer</h3>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1.5">"Paid for by" Disclaimer Text*</label>
+                  <input type="text" value={disclaimerText} onChange={(e) => setDisclaimerText(e.target.value)} className="w-full bg-[#fafafa] border border-gray-300 rounded-xl px-4 py-2.5 text-sm font-semibold" />
+                </div>
+                <div className="flex justify-between pt-2">
+                  <button onClick={() => setOnboardingStep(2)} className="text-xs font-semibold text-gray-600">← Back</button>
+                  <button onClick={() => setOnboardingStep(4)} className="px-8 py-3.5 rounded-full font-bold text-xs bg-[#bbf7d0] text-gray-950">Complete Onboarding →</button>
+                </div>
+              </div>
+            )}
+
+            {/* Step 4: Ready -> Directly to Candidate Dashboard! */}
+            {onboardingStep === 4 && (
+              <div className="max-w-2xl mx-auto bg-white p-8 sm:p-10 rounded-3xl border border-gray-200 shadow-xl text-center space-y-6">
+                <div className="w-16 h-16 rounded-3xl bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto text-3xl shadow-sm">🎉</div>
+                <h3 className="text-2xl font-black text-gray-950">Onboarding Complete!</h3>
+                <p className="text-xs text-gray-500 max-w-md mx-auto">Your profile is ready. Enter your Candidate Dashboard to monitor voter reach and launch ads.</p>
+                <button 
+                  onClick={() => {
+                    setCurrentView('dashboard');
+                    setDashboardTab('overview');
+                  }} 
+                  className="px-10 py-4 rounded-full font-bold text-gray-950 bg-[#bbf7d0] hover:bg-[#86efac] transition shadow-md text-sm flex items-center justify-center gap-2 mx-auto"
+                >
+                  <LayoutDashboard className="w-4 h-4" />
+                  Enter Candidate Dashboard Now
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================
+          4. CANDIDATE DASHBOARD
+      ======================================================== */}
+      {currentView === 'dashboard' && (
+        <div className="min-h-screen bg-[#fafafa] flex flex-col">
+          
+          {/* Candidate Dashboard Top Header */}
+          <header className="sticky top-0 z-30 bg-white border-b border-gray-200/80 h-16 px-4 sm:px-6 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div 
+                className="flex items-center gap-2 cursor-pointer"
+                onClick={() => setDashboardTab('overview')}
+              >
+                <div className="w-8 h-8 rounded-lg bg-gray-950 flex items-center justify-center shadow-sm">
+                  <Megaphone className="w-4 h-4 text-white" />
+                </div>
+                <span className="text-xl font-black tracking-tight text-gray-950">
+                  Politi<span className="text-emerald-600">Ads</span>
+                </span>
+              </div>
+
+              <div className="hidden md:flex items-center gap-2 pl-4 border-l border-gray-200 text-xs text-gray-500">
+                <span className="font-semibold text-gray-800">{obCandidateName}</span>
+                <span>•</span>
+                <span>{obGaonWard}</span>
+                <span>•</span>
+                <span className="text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-full">Meta Live 🟢</span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <button
+                onClick={handleOpenCreateAdModal}
+                className="px-4 py-2 rounded-full text-xs font-bold text-gray-950 bg-[#bbf7d0] hover:bg-[#86efac] transition shadow-sm flex items-center gap-1.5"
+              >
+                <PlusCircle className="w-4 h-4" />
+                + Create New Ad
+              </button>
+
+              {/* User Avatar Menu */}
+              <div className="relative">
+                <button
+                  onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+                  className="w-9 h-9 rounded-full bg-gray-950 text-white font-bold flex items-center justify-center text-xs overflow-hidden ring-2 ring-emerald-500"
+                >
+                  {obPhotoPreview ? <img src={obPhotoPreview} alt="user" className="w-full h-full object-cover" /> : obCandidateName.charAt(0)}
+                </button>
+
+                {isProfileMenuOpen && (
+                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-2xl border border-gray-200 py-2 z-50 text-xs">
+                    <div className="px-4 py-2 border-b border-gray-100">
+                      <p className="font-bold text-gray-900">{obCandidateName}</p>
+                      <p className="text-[11px] text-gray-500">{obEmail}</p>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setIsProfileMenuOpen(false);
+                        setCurrentView('admin');
+                        setAdminTab('approvals_studio');
+                      }}
+                      className="w-full px-4 py-2 text-left font-bold text-amber-700 hover:bg-amber-50 flex items-center gap-2"
+                    >
+                      <ShieldCheck className="w-4 h-4 text-amber-600" />
+                      Switch to Super Admin Hub
+                    </button>
+                    <button
+                      onClick={() => {
+                        setIsProfileMenuOpen(false);
+                        setCurrentView('landing');
+                      }}
+                      className="w-full px-4 py-2 text-left text-gray-600 hover:bg-gray-100 flex items-center gap-2"
+                    >
+                      <LogOut className="w-4 h-4 text-gray-400" />
+                      Log Out (Back to Home)
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </header>
+
+          <div className="flex-1 flex flex-col md:flex-row">
+            {/* Left Sidebar */}
+            <aside className="w-full md:w-64 bg-white border-r border-gray-200/80 p-5 flex flex-col justify-between shrink-0">
+              <div>
+                <div className="p-3.5 rounded-2xl bg-[#fafafa] border border-gray-200 mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-11 h-11 rounded-xl bg-gray-200 border border-gray-300 overflow-hidden shrink-0 flex items-center justify-center">
+                      {obPhotoPreview ? <img src={obPhotoPreview} alt="Candidate" className="w-full h-full object-cover" /> : <User className="w-6 h-6 text-gray-500" />}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <h4 className="text-sm font-bold text-gray-950 truncate">{obCandidateName}</h4>
+                      <p className="text-[11px] text-emerald-700 font-semibold truncate">{obPost}</p>
+                      <p className="text-[10px] text-gray-500 truncate">{obGaonWard}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <nav className="space-y-1">
+                  {[
+                    { id: 'overview', label: 'Overview & Analytics', icon: BarChart3 },
+                    { id: 'ads_manager', label: 'Ads Manager & Campaigns', icon: Megaphone, count: activeCampaigns.length },
+                    { id: 'surveys_services', label: '🗳️ Surveys & Services', icon: Vote, badge: 'New' },
+                    { id: 'chess_spy', label: 'Chess Opponent Spy', icon: Target },
+                    { id: 'billing', label: 'Billing & Invoices', icon: CreditCard },
+                    { id: 'settings', label: 'Settings Canvas (All Details)', icon: Settings },
+                  ].map((item) => {
+                    const Icon = item.icon;
+                    const isActive = dashboardTab === item.id;
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={() => setDashboardTab(item.id)}
+                        className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition ${
+                          isActive ? 'bg-gray-950 text-white shadow-sm' : 'text-gray-600 hover:text-gray-950 hover:bg-gray-100'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <Icon className={`w-4 h-4 ${isActive ? 'text-emerald-400' : 'text-gray-400'}`} />
+                          <span>{item.label}</span>
+                        </div>
+                        {item.count !== undefined && (
+                          <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${isActive ? 'bg-gray-800 text-emerald-400' : 'bg-gray-200 text-gray-700'}`}>
+                            {item.count}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </nav>
+              </div>
+
+              <div className="pt-6 border-t border-gray-100 space-y-2 mt-6">
+                <a href="https://wa.me" target="_blank" rel="noreferrer" className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 transition">
+                  <PhoneCall className="w-3.5 h-3.5 text-emerald-600" /> 24x7 WhatsApp Support
+                </a>
+              </div>
+            </aside>
+
+            {/* Dashboard Content Canvas */}
+            <main className="flex-1 p-5 sm:p-8 overflow-y-auto">
+              
+              {/* Tab: Overview */}
+              {dashboardTab === 'overview' && (
+                <div className="space-y-7">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                    <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
+                      <p className="text-xs text-gray-500 mb-1">Total Voter Reach</p>
+                      <p className="text-2xl font-black text-gray-950">28,450</p>
+                      <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full inline-block mt-2">+18.4% this week</span>
+                    </div>
+                    <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
+                      <p className="text-xs text-gray-500 mb-1">Active Campaigns</p>
+                      <p className="text-2xl font-black text-gray-950">{activeCampaigns.length} Live</p>
+                      <p className="text-[11px] text-gray-400 mt-2">On Meta Ad Network</p>
+                    </div>
+                    <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
+                      <p className="text-xs text-gray-500 mb-1">Today's Ad Spend</p>
+                      <p className="text-2xl font-black text-gray-950">₹730</p>
+                      <p className="text-[11px] text-gray-400 mt-2">Daily Cap: ₹1,200</p>
+                    </div>
+                    <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
+                      <p className="text-xs text-gray-500 mb-1">WhatsApp Leads</p>
+                      <p className="text-2xl font-black text-gray-950">64 Clicks</p>
+                      <p className="text-[11px] text-emerald-700 font-medium mt-2">Direct Voter Inquiries</p>
+                    </div>
+                  </div>
+
+                  {/* Active Campaigns */}
+                  <div className="bg-white p-6 rounded-3xl border border-gray-200 shadow-sm">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-sm font-bold text-gray-950">Live Campaigns on Meta</h3>
+                      <button onClick={() => setDashboardTab('ads_manager')} className="text-xs font-bold text-emerald-700 hover:underline">
+                        Manage All Ads →
+                      </button>
+                    </div>
+
+                    <div className="divide-y divide-gray-100">
+                      {activeCampaigns.map((ad) => (
+                        <div key={ad.id} className="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <h4 className="text-xs font-bold text-gray-950">{ad.title}</h4>
+                              <span className="text-[10px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-full">{ad.badge}</span>
+                            </div>
+                            <p className="text-[11px] text-gray-500 mt-0.5">₹{ad.budget}/day · {ad.radius} km radius · {ad.date}</p>
+                          </div>
+                          <span className="text-xs font-bold px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 self-start sm:self-auto">{ad.status}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Tab: Ads Manager */}
+              {dashboardTab === 'ads_manager' && (
+                <div className="bg-white p-6 rounded-3xl border border-gray-200 shadow-sm space-y-5">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-base font-bold text-gray-950">Campaigns Manager</h3>
+                      <p className="text-xs text-gray-500">Live political ads broadcasted to local voters</p>
+                    </div>
+                    <button onClick={handleOpenCreateAdModal} className="px-4 py-2 rounded-full text-xs font-bold bg-[#bbf7d0] text-gray-950">+ Create New Ad</button>
+                  </div>
+                  <div className="divide-y divide-gray-100">
+                    {activeCampaigns.map((ad) => (
+                      <div key={ad.id} className="py-4 flex justify-between items-center">
+                        <div>
+                          <p className="font-bold text-xs text-gray-950">{ad.title}</p>
+                          <span className="text-[10px] text-emerald-700 font-bold">{ad.badge}</span>
+                        </div>
+                        <span className="text-xs font-bold text-emerald-800 bg-emerald-50 px-3 py-1 rounded-full">{ad.status}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Tab: Surveys & Services */}
+              {dashboardTab === 'surveys_services' && (
+                <div className="space-y-6">
+                  <h3 className="text-lg font-bold text-gray-950">Political Surveys & Services</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="p-6 rounded-3xl bg-white border border-gray-200 shadow-sm space-y-3">
+                      <h4 className="font-bold text-sm">Voter Opinion Poll Ads</h4>
+                      <p className="text-xs text-gray-500">Run poll ads to ask voters their primary local issues.</p>
+                      <button onClick={handleOpenCreateAdModal} className="w-full py-2 rounded-full text-xs font-bold bg-[#bbf7d0] text-gray-950">+ Launch Poll Ad</button>
+                    </div>
+                    <div className="p-6 rounded-3xl bg-white border border-gray-200 shadow-sm space-y-3">
+                      <h4 className="font-bold text-sm">WhatsApp Manifesto Blast</h4>
+                      <p className="text-xs text-gray-500">Directly send your election manifesto to local voters.</p>
+                      <a href="https://wa.me" target="_blank" rel="noreferrer" className="w-full py-2 rounded-full text-xs font-bold bg-gray-100 text-gray-800 block text-center">Request Broadcast</a>
+                    </div>
+                    <div className="p-6 rounded-3xl bg-white border border-gray-200 shadow-sm space-y-3">
+                      <h4 className="font-bold text-sm">Custom HD Video Reels</h4>
+                      <p className="text-xs text-gray-500">Get a high-impact 30-sec reel produced by our team.</p>
+                      <button onClick={() => { setToastMessage('Video request registered!'); setShowSuccessToast(true); setTimeout(() => setShowSuccessToast(false), 2000); }} className="w-full py-2 rounded-full text-xs font-bold bg-gray-100 text-gray-800">Request Video</button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Tab: Settings Canvas */}
+              {dashboardTab === 'settings' && (
+                <div className="bg-white p-7 rounded-3xl border border-gray-200 shadow-sm space-y-6 max-w-4xl">
+                  <div className="flex justify-between items-center pb-4 border-b border-gray-100">
+                    <h3 className="text-lg font-bold text-gray-950">Settings Canvas (All Campaign Details)</h3>
+                    <button onClick={() => { setToastMessage('Settings saved successfully!'); setShowSuccessToast(true); setTimeout(() => setShowSuccessToast(false), 2000); }} className="px-5 py-2 rounded-full text-xs font-bold bg-[#bbf7d0] text-gray-950">Save Changes</button>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4 text-xs">
+                    <div>
+                      <label className="font-bold block mb-1">Candidate Name</label>
+                      <input type="text" value={obCandidateName} onChange={(e) => setObCandidateName(e.target.value)} className="w-full bg-[#fafafa] border border-gray-300 rounded-xl px-3 py-2" />
+                    </div>
+                    <div>
+                      <label className="font-bold block mb-1">WhatsApp Mobile</label>
+                      <input type="text" value={obMobile} onChange={(e) => setObMobile(e.target.value)} className="w-full bg-[#fafafa] border border-gray-300 rounded-xl px-3 py-2" />
+                    </div>
+                    <div>
+                      <label className="font-bold block mb-1">Gaon / Ward</label>
+                      <input type="text" value={obGaonWard} onChange={(e) => setObGaonWard(e.target.value)} className="w-full bg-[#fafafa] border border-gray-300 rounded-xl px-3 py-2" />
+                    </div>
+                    <div>
+                      <label className="font-bold block mb-1">Pincode</label>
+                      <input type="text" value={obPincode} onChange={(e) => setObPincode(e.target.value)} className="w-full bg-[#fafafa] border border-gray-300 rounded-xl px-3 py-2 font-mono" />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Tab: Billing */}
+              {dashboardTab === 'billing' && (
+                <div className="bg-white p-7 rounded-3xl border border-gray-200 shadow-sm space-y-4">
+                  <h3 className="text-base font-bold text-gray-950">Billing & Expenditure Ledger</h3>
+                  <p className="text-xs text-gray-500">Available Wallet Balance: <span className="font-bold text-gray-900">₹3,450.00</span></p>
+                </div>
+              )}
+
+              {/* Tab: Chess Spy */}
+              {dashboardTab === 'chess_spy' && (
+                <div className="bg-white p-7 rounded-3xl border border-gray-200 shadow-sm space-y-4">
+                  <h3 className="text-base font-bold text-gray-950">Opponent Ad Spy</h3>
+                  <p className="text-xs text-gray-500">Tracking rival candidates via Meta Ad Library API.</p>
+                </div>
+              )}
+
+            </main>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================
+          5. SUPER ADMIN CONTROL HUB
+      ======================================================== */}
+      {currentView === 'admin' && (
+        <div className="min-h-screen bg-slate-950 text-gray-200 flex flex-col">
+          
+          {/* Admin Header */}
+          <header className="h-16 bg-slate-900 border-b border-slate-800 px-6 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-amber-500 text-slate-950 flex items-center justify-center font-black text-sm">A</div>
+              <div>
+                <span className="font-black text-white text-base">PolitiAds <span className="text-amber-400">Admin Control</span></span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => {
+                  setCurrentView('dashboard');
+                  setDashboardTab('overview');
+                }}
+                className="px-4 py-2 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-gray-200 transition"
+              >
+                ← Back to Candidate Dashboard
+              </button>
+              <button
+                onClick={() => setCurrentView('landing')}
+                className="text-xs font-semibold text-gray-400 hover:text-white"
+              >
+                Exit to Home
+              </button>
+            </div>
+          </header>
+
+          <div className="flex-1 flex flex-col md:flex-row">
+                        {/* Admin Sidebar */}
+            <aside className="w-full md:w-72 bg-slate-900/80 border-r border-slate-800 p-5 space-y-2 shrink-0">
+              <div className="pb-3 mb-2 border-b border-slate-800">
+                <span className="text-[11px] font-black uppercase tracking-wider text-amber-400">Master Control Modules</span>
+              </div>
+
+              <button
+                onClick={() => setAdminTab('approvals_studio')}
+                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition ${
+                  adminTab === 'approvals_studio' ? 'bg-amber-500 text-slate-950 shadow-md' : 'text-gray-300 hover:bg-slate-800'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <Wrench className="w-4 h-4" />
+                  <span>Ad Review & Quick-Fix</span>
+                </div>
+                {adminPendingAds.length > 0 && <span className="bg-red-500 text-white px-2 py-0.5 rounded-full text-[10px] font-black">{adminPendingAds.length}</span>}
+              </button>
+
+              <button
+                onClick={() => setAdminTab('total_users')}
+                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition ${
+                  adminTab === 'total_users' ? 'bg-amber-500 text-slate-950 shadow-md' : 'text-gray-300 hover:bg-slate-800'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <Users className="w-4 h-4" />
+                  <span>Candidate Directory</span>
+                </div>
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${adminTab === 'total_users' ? 'bg-slate-950 text-amber-400' : 'bg-slate-800 text-gray-300'}`}>
+                  {candidatesDirectory.length}
+                </span>
+              </button>
+
+              <button
+                onClick={() => setAdminTab('profit_engine')}
+                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition ${
+                  adminTab === 'profit_engine' ? 'bg-amber-500 text-slate-950 shadow-md' : 'text-gray-300 hover:bg-slate-800'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <DollarSign className="w-4 h-4" />
+                  <span>Profit & Meta Cut Engine</span>
+                </div>
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${adminTab === 'profit_engine' ? 'bg-slate-950 text-amber-400' : 'bg-emerald-950 text-emerald-400'}`}>
+                  {companyMarginPct}% Cut
+                </span>
+              </button>
+
+              <button
+                onClick={() => setAdminTab('subscriptions')}
+                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition ${
+                  adminTab === 'subscriptions' ? 'bg-amber-500 text-slate-950 shadow-md' : 'text-gray-300 hover:bg-slate-800'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <Layers className="w-4 h-4" />
+                  <span>Subscription Plans</span>
+                </div>
+                <span className="text-[10px] text-gray-400 font-bold">{subscriptionPlans.length} Packs</span>
+              </button>
+
+              <button
+                onClick={() => setAdminTab('api_gateway')}
+                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition ${
+                  adminTab === 'api_gateway' ? 'bg-amber-500 text-slate-950 shadow-md' : 'text-gray-300 hover:bg-slate-800'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <Activity className="w-4 h-4" />
+                  <span>API Gateway & Health</span>
+                </div>
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              </button>
+
+              <button
+                onClick={() => setAdminTab('payment_ledger')}
+                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition ${
+                  adminTab === 'payment_ledger' ? 'bg-amber-500 text-slate-950 shadow-md' : 'text-gray-300 hover:bg-slate-800'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <CreditCard className="w-4 h-4" />
+                  <span>Payments & Invoices</span>
+                </div>
+                <span className="text-[10px] text-gray-400 font-bold">{transactionsList.length} TXN</span>
+              </button>
+            </aside>
+
+            {/* Admin Main Canvas */}
+            <main className="flex-1 p-6 sm:p-8 overflow-y-auto">
+              
+              {/* MODULE 1: Ad Review & Quick-Fix Studio */}
+              {adminTab === 'approvals_studio' && (
+                <div className="space-y-6">
+                  <div>
+                    <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                      <Wrench className="w-5 h-5 text-amber-400" />
+                      Company Ad Moderation & Quick-Fix Studio
+                    </h3>
+                    <p className="text-xs text-gray-400 mt-1">Review candidate ads, polish raw slogans into high-converting political copy, and push live directly to Meta.</p>
+                  </div>
+
+                  {adminPendingAds.length === 0 ? (
+                    <div className="p-12 rounded-3xl bg-slate-900 border border-slate-800 text-center space-y-3">
+                      <CheckCircle2 className="w-12 h-12 text-emerald-400 mx-auto" />
+                      <h4 className="font-bold text-white text-base">All Ads Reviewed & Live on Meta!</h4>
+                      <p className="text-xs text-gray-400 max-w-md mx-auto">No pending ads in review queue. Any new candidate submission will appear here automatically.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {adminPendingAds.map((ad) => (
+                        <div key={ad.id} className="p-6 rounded-3xl bg-slate-900 border-2 border-amber-400/40 space-y-4">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <span className="text-xs font-bold bg-amber-500 text-slate-950 px-2 py-0.5 rounded-full">{ad.status}</span>
+                              <h4 className="text-base font-bold text-white mt-1.5">{ad.candidateName} ({ad.post})</h4>
+                              <p className="text-xs text-gray-400">{ad.area} • PIN: {ad.pincode} • ₹{ad.budget}/day • Radius: {ad.radius} km</p>
+                            </div>
+                            <span className="text-xs text-amber-400 font-bold bg-slate-800 px-3 py-1 rounded-full border border-slate-700">{ad.symbol}</span>
+                          </div>
+
+                          <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-2 text-xs">
+                            <span className="text-gray-400 block font-semibold">Candidate's Raw Input:</span>
+                            <p className="italic text-gray-300 bg-slate-900 p-2.5 rounded-xl border border-slate-800">"{ad.originalSlogan}"</p>
+                            <span className="text-emerald-400 font-bold block pt-1">Company Enhanced Copy (Ready for Meta):</span>
+                            <input 
+                              type="text" 
+                              defaultValue={ad.enhancedSlogan}
+                              onChange={(e) => { ad.enhancedSlogan = e.target.value; }}
+                              className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white font-bold text-xs focus:border-amber-400 focus:outline-none"
+                            />
+                          </div>
+
+                          <div className="flex flex-wrap gap-3 pt-1">
+                            <button
+                              onClick={() => handleAdminApproveAndPushToMeta(ad)}
+                              className="px-6 py-2.5 rounded-full font-bold text-xs bg-[#bbf7d0] hover:bg-[#86efac] text-slate-950 transition flex items-center gap-1.5 shadow-md"
+                            >
+                              <Zap className="w-3.5 h-3.5" />
+                              ⚡ Fix, Enhance & Push to Meta
+                            </button>
+                            <a 
+                              href={`https://wa.me/91${ad.phone}`}
+                              target="_blank" 
+                              rel="noreferrer"
+                              className="px-4 py-2.5 rounded-full text-xs font-semibold bg-slate-800 text-gray-300 hover:bg-slate-700 transition flex items-center gap-1.5"
+                            >
+                              <PhoneCall className="w-3.5 h-3.5 text-emerald-400" />
+                              WhatsApp Candidate
+                            </a>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* MODULE 2: Candidate Directory & Dossier */}
+              {adminTab === 'total_users' && (
+                <div className="space-y-5">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                      <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                        <Users className="w-5 h-5 text-amber-400" />
+                        Registered Candidates Directory
+                      </h3>
+                      <p className="text-xs text-gray-400 mt-1">Total {candidatesDirectory.length} political candidates onboarded across Gram Panchayat, Ward, and Assembly.</p>
+                    </div>
+
+                    {/* Search & Filter */}
+                    <div className="flex items-center gap-2">
+                      <input 
+                        type="text" 
+                        placeholder="Search name, ward, PIN, or ID..." 
+                        value={candidateSearchQuery}
+                        onChange={(e) => setCandidateSearchQuery(e.target.value)}
+                        className="bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-white placeholder-gray-500 w-48 sm:w-64"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Filter Pills */}
+                  <div className="flex items-center gap-2 text-xs">
+                    {['All', 'Active', 'Pending', 'Suspended'].map((status) => (
+                      <button
+                        key={status}
+                        onClick={() => setCandidateFilterStatus(status)}
+                        className={`px-3 py-1 rounded-full font-semibold transition ${
+                          candidateFilterStatus === status 
+                            ? 'bg-amber-400 text-slate-950' 
+                            : 'bg-slate-900 text-gray-400 hover:text-white'
+                        }`}
+                      >
+                        {status}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Candidates Table */}
+                  <div className="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-xl">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left text-xs">
+                        <thead className="bg-slate-950 text-gray-400 uppercase font-semibold text-[10px] tracking-wider border-b border-slate-800">
+                          <tr>
+                            <th className="py-3 px-4">User ID</th>
+                            <th className="py-3 px-4">Candidate & Post</th>
+                            <th className="py-3 px-4">Location (Ward & PIN)</th>
+                            <th className="py-3 px-4">Mobile / Contact</th>
+                            <th className="py-3 px-4">Plan & Spend</th>
+                            <th className="py-3 px-4">Status</th>
+                            <th className="py-3 px-4 text-right">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-800/80 text-gray-200">
+                          {candidatesDirectory
+                            .filter(c => {
+                              const matchSearch = c.name.toLowerCase().includes(candidateSearchQuery.toLowerCase()) ||
+                                c.ward.toLowerCase().includes(candidateSearchQuery.toLowerCase()) ||
+                                c.id.toLowerCase().includes(candidateSearchQuery.toLowerCase()) ||
+                                c.pincode.includes(candidateSearchQuery);
+                              const matchStatus = candidateFilterStatus === 'All' || c.status === candidateFilterStatus;
+                              return matchSearch && matchStatus;
+                            })
+                            .map((cand) => (
+                              <tr key={cand.id} className="hover:bg-slate-800/40 transition">
+                                <td className="py-3 px-4 font-mono text-amber-400 font-bold">{cand.id}</td>
+                                <td className="py-3 px-4">
+                                  <div className="font-bold text-white">{cand.name}</div>
+                                  <div className="text-[11px] text-gray-400">{cand.post}</div>
+                                </td>
+                                <td className="py-3 px-4">
+                                  <div>{cand.ward}</div>
+                                  <div className="text-[11px] text-gray-400">PIN: {cand.pincode}</div>
+                                </td>
+                                <td className="py-3 px-4">
+                                  <div>+91 {cand.phone}</div>
+                                  <a href={`https://wa.me/91${cand.phone}`} target="_blank" rel="noreferrer" className="text-[10px] text-emerald-400 hover:underline">WhatsApp</a>
+                                </td>
+                                <td className="py-3 px-4">
+                                  <div className="font-semibold text-emerald-400">₹{cand.totalSpend}</div>
+                                  <div className="text-[10px] text-gray-400">{cand.plan}</div>
+                                </td>
+                                <td className="py-3 px-4">
+                                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                    cand.status === 'Active' ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' :
+                                    cand.status === 'Pending' ? 'bg-amber-950 text-amber-400 border border-amber-800' :
+                                    'bg-red-950 text-red-400 border border-red-800'
+                                  }`}>
+                                    {cand.status}
+                                  </span>
+                                </td>
+                                <td className="py-3 px-4 text-right space-x-1.5 whitespace-nowrap">
+                                  <button
+                                    onClick={() => handleToggleCandidateStatus(cand.id)}
+                                    title="Toggle Active / Suspended status"
+                                    className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-gray-300 text-[11px] font-semibold"
+                                  >
+                                    {cand.status === 'Active' ? 'Suspend' : 'Activate'}
+                                  </button>
+                                  <button
+                                    onClick={() => setSelectedCandidateDossier(cand)}
+                                    className="px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 text-[11px] font-semibold"
+                                  >
+                                    Dossier
+                                  </button>
+                                  <button
+                                    onClick={() => handleImpersonateCandidate(cand)}
+                                    title="Impersonate & login as this candidate"
+                                    className="px-2.5 py-1 rounded-lg bg-[#bbf7d0] hover:bg-[#86efac] text-slate-950 text-[11px] font-bold"
+                                  >
+                                    Login as User
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* MODULE 3: Profit Margin & Meta Cut Engine */}
+              {adminTab === 'profit_engine' && (
+                <div className="space-y-6">
+                  <div>
+                    <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                      <DollarSign className="w-5 h-5 text-amber-400" />
+                      Platform Commission & Meta Payout Engine
+                    </h3>
+                    <p className="text-xs text-gray-400 mt-1">Control your business profit margin. Set how much percentage your company keeps versus how much is paid to Meta Graph API for ad impressions.</p>
+                  </div>
+
+                  {/* 3 Master Metric Cards */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                    <div className="p-5 rounded-3xl bg-slate-900 border border-slate-800">
+                      <p className="text-xs text-gray-400">Gross Platform Volume</p>
+                      <p className="text-3xl font-black text-white mt-1">₹2,48,500</p>
+                      <span className="text-[11px] text-emerald-400 font-bold bg-emerald-950 px-2 py-0.5 rounded-full inline-block mt-2">100% Collected via UPI</span>
+                    </div>
+
+                    <div className="p-5 rounded-3xl bg-slate-900 border-2 border-amber-400/50">
+                      <p className="text-xs text-amber-400 font-semibold">Our Platform Margin ({companyMarginPct}% Cut)</p>
+                      <p className="text-3xl font-black text-amber-400 mt-1">
+                        ₹{(248500 * companyMarginPct / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                      </p>
+                      <span className="text-[11px] text-slate-950 font-black bg-amber-400 px-2 py-0.5 rounded-full inline-block mt-2">Net Company Profit</span>
+                    </div>
+
+                    <div className="p-5 rounded-3xl bg-slate-900 border border-slate-800">
+                      <p className="text-xs text-gray-400">Meta Ad Network Outflow ({100 - companyMarginPct}%)</p>
+                      <p className="text-3xl font-black text-emerald-400 mt-1">
+                        ₹{(248500 * (100 - companyMarginPct) / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                      </p>
+                      <span className="text-[11px] text-gray-400 font-medium mt-2 block">Directly spent on Facebook & Instagram ads</span>
+                    </div>
+                  </div>
+
+                  {/* Dynamic Margin Controller & Live Budget Calculator */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Left: Interactive Company Cut Slider */}
+                    <div className="p-6 rounded-3xl bg-slate-900 border border-slate-800 space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-bold text-white text-sm">Company Commission Rate</h4>
+                        <span className="text-2xl font-black text-amber-400 font-mono">{companyMarginPct}%</span>
+                      </div>
+                      <p className="text-xs text-gray-400">Adjust the slider below to change company cut percentage across all newly created campaigns.</p>
+
+                      <input 
+                        type="range" 
+                        min="5" 
+                        max="50" 
+                        step="1"
+                        value={companyMarginPct}
+                        onChange={(e) => setCompanyMarginPct(Number(e.target.value))}
+                        className="w-full accent-amber-400 cursor-pointer h-2 bg-slate-950 rounded-lg"
+                      />
+
+                      <div className="flex justify-between text-[11px] text-gray-500 font-mono">
+                        <span>5% (Low Margin)</span>
+                        <span>20% (Recommended)</span>
+                        <span>50% (High Margin)</span>
+                      </div>
+
+                      <button
+                        onClick={handleSaveCommissionPolicy}
+                        className="w-full py-2.5 rounded-xl font-bold text-xs bg-amber-400 hover:bg-amber-300 text-slate-950 transition shadow-md"
+                      >
+                        Save Commission Policy ({companyMarginPct}%)
+                      </button>
+                    </div>
+
+                    {/* Right: Live Candidate Budget Calculator (e.g. ₹200) */}
+                    <div className="p-6 rounded-3xl bg-slate-950 border border-slate-800 space-y-4">
+                      <h4 className="font-bold text-white text-sm">Live Payout Simulator</h4>
+                      <p className="text-xs text-gray-400">Test how much the company earns and how much Meta receives for any custom candidate budget:</p>
+
+                      <div>
+                        <div className="flex justify-between text-xs font-semibold text-gray-300 mb-1">
+                          <span>Candidate Budget:</span>
+                          <span className="font-black text-white text-sm font-mono">₹{calculatorBudget}</span>
+                        </div>
+                        <input 
+                          type="range" 
+                          min="100" 
+                          max="5000" 
+                          step="50"
+                          value={calculatorBudget}
+                          onChange={(e) => setCalculatorBudget(Number(e.target.value))}
+                          className="w-full accent-emerald-400 cursor-pointer h-2 bg-slate-900 rounded-lg"
+                        />
+                      </div>
+
+                      <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 space-y-2.5 text-xs">
+                        <div className="flex justify-between items-center text-gray-300">
+                          <span>Candidate Total Payment:</span>
+                          <span className="font-bold text-white">₹{calculatorBudget}.00</span>
+                        </div>
+                        <div className="flex justify-between items-center text-amber-400 font-bold border-t border-slate-800 pt-2">
+                          <span>⚡ Our Company Profit ({companyMarginPct}%):</span>
+                          <span>+ ₹{(calculatorBudget * companyMarginPct / 100).toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between items-center text-emerald-400 font-bold">
+                          <span>🌐 Meta Ad Network Outflow ({100 - companyMarginPct}%):</span>
+                          <span>₹{(calculatorBudget * (100 - companyMarginPct) / 100).toFixed(2)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* MODULE 4: Subscription Plans & Creator */}
+              {adminTab === 'subscriptions' && (
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                        <Layers className="w-5 h-5 text-amber-400" />
+                        Political Subscription Packets
+                      </h3>
+                      <p className="text-xs text-gray-400 mt-1">Configure subscription pricing tiers, daily ad spend limits, and election feature packages.</p>
+                    </div>
+
+                    <button
+                      onClick={() => setIsCreatePlanModalOpen(true)}
+                      className="px-4 py-2.5 rounded-full text-xs font-bold bg-amber-400 hover:bg-amber-300 text-slate-950 transition flex items-center gap-1.5 shadow-md"
+                    >
+                      <PlusCircle className="w-4 h-4" />
+                      + Create New Plan
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {subscriptionPlans.map((plan) => (
+                      <div key={plan.id} className="p-6 rounded-3xl bg-slate-900 border border-slate-800 space-y-4 flex flex-col justify-between">
+                        <div>
+                          <div className="flex justify-between items-start">
+                            <span className="text-[10px] font-black uppercase tracking-wider text-amber-400 bg-amber-950/60 px-2.5 py-0.5 rounded-full border border-amber-800/40">{plan.badge}</span>
+                            <span className="text-xs text-gray-400 font-semibold">{plan.usersCount} Active Candidates</span>
+                          </div>
+
+                          <h4 className="text-lg font-bold text-white mt-3">{plan.name}</h4>
+                          <div className="mt-1 flex items-baseline gap-1">
+                            <span className="text-3xl font-black text-emerald-400 font-mono">₹{plan.price}</span>
+                            <span className="text-xs text-gray-400">/ election cycle</span>
+                          </div>
+                          <p className="text-xs text-gray-400 mt-2">Daily Ad Cap: <span className="font-bold text-white">₹{plan.dailyAdLimit} / day</span></p>
+
+                          <ul className="mt-4 space-y-2 text-xs text-gray-300 border-t border-slate-800 pt-4">
+                            {plan.features.map((feat, idx) => (
+                              <li key={idx} className="flex items-center gap-2">
+                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                                <span>{feat}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+
+                        <button 
+                          onClick={() => alert(`Plan "${plan.name}" is currently active for ${plan.usersCount} candidates.`)}
+                          className="w-full py-2 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-gray-200 transition"
+                        >
+                          Manage Plan Settings
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* MODULE 5: API Gateway & Health Checks */}
+              {adminTab === 'api_gateway' && (
+                <div className="space-y-6">
+                  <div>
+                    <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                      <Activity className="w-5 h-5 text-amber-400" />
+                      API Gateway & External System Health
+                    </h3>
+                    <p className="text-xs text-gray-400 mt-1">Live status of Meta Graph Marketing API, WhatsApp Business API, and AI Copywriting Engine.</p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {/* Meta Graph API */}
+                    <div className="p-6 rounded-3xl bg-slate-900 border border-slate-800 space-y-4">
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
+                          <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                          Meta Graph API v19.0
+                        </span>
+                        <span className="text-[10px] text-gray-400 font-mono">Ping: {apiHealthState.metaLatency}ms</span>
+                      </div>
+
+                      <div>
+                        <h4 className="text-base font-bold text-white">Facebook & Instagram Ad Engine</h4>
+                        <p className="text-xs text-gray-400 mt-1">Special Category: ISSUES_ELECTIONS_POLITICS</p>
+                      </div>
+
+                      <div className="space-y-1.5 text-xs text-gray-300 bg-slate-950 p-3 rounded-xl border border-slate-800 font-mono">
+                        <div>App ID: 981245091248012</div>
+                        <div>Token Expiry: 54 Days</div>
+                        <div className="text-emerald-400 font-bold">Status: Handshake Verified 🟢</div>
+                      </div>
+
+                      <button
+                        onClick={handleTestMetaConnection}
+                        disabled={apiHealthState.isTesting}
+                        className="w-full py-2.5 rounded-xl text-xs font-bold bg-[#bbf7d0] hover:bg-[#86efac] text-slate-950 transition flex items-center justify-center gap-2"
+                      >
+                        <RefreshCw className={`w-3.5 h-3.5 ${apiHealthState.isTesting ? 'animate-spin' : ''}`} />
+                        {apiHealthState.isTesting ? 'Testing Handshake...' : '⚡ Test Meta Connection'}
+                      </button>
+                    </div>
+
+                    {/* WhatsApp Cloud API */}
+                    <div className="p-6 rounded-3xl bg-slate-900 border border-slate-800 space-y-4">
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
+                          <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                          WhatsApp Cloud API
+                        </span>
+                        <span className="text-[10px] text-gray-400 font-mono">WABA: 2091481</span>
+                      </div>
+
+                      <div>
+                        <h4 className="text-base font-bold text-white">Voter Lead Delivery</h4>
+                        <p className="text-xs text-gray-400 mt-1">Routes ad clicks directly into candidate's phone inbox.</p>
+                      </div>
+
+                      <div className="space-y-1.5 text-xs text-gray-300 bg-slate-950 p-3 rounded-xl border border-slate-800 font-mono">
+                        <div>Business Phone ID: 1084201948</div>
+                        <div>Template Messages: Approved (ECI)</div>
+                        <div className="text-emerald-400 font-bold">Status: Online & Ready 🟢</div>
+                      </div>
+
+                      <button
+                        onClick={() => alert('WhatsApp Webhook ping successful! All message queues are healthy.')}
+                        className="w-full py-2.5 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-gray-200 transition"
+                      >
+                        Ping WhatsApp Webhook
+                      </button>
+                    </div>
+
+                    {/* AI Copywriting Engine */}
+                    <div className="p-6 rounded-3xl bg-slate-900 border border-slate-800 space-y-4">
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs font-bold text-amber-400 flex items-center gap-1.5">
+                          <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                          AI Copywriting Engine
+                        </span>
+                        <span className="text-[10px] text-gray-400 font-mono">Latency: 0.8s</span>
+                      </div>
+
+                      <div>
+                        <h4 className="text-base font-bold text-white">Election Slogan Polisher</h4>
+                        <p className="text-xs text-gray-400 mt-1">Fine-tuned model for Hindi/Hinglish political appeals.</p>
+                      </div>
+
+                      <div className="space-y-1.5 text-xs text-gray-300 bg-slate-950 p-3 rounded-xl border border-slate-800 font-mono">
+                        <div>Model: Gemini 2.5 / GPT-4o Political</div>
+                        <div>Avg Enhancement: 0.8s</div>
+                        <div className="text-emerald-400 font-bold">Status: Operational 🟢</div>
+                      </div>
+
+                      <button
+                        onClick={() => alert('AI Model connection tested. Ready for political ad copywriting enhancements.')}
+                        className="w-full py-2.5 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-gray-200 transition"
+                      >
+                        Test AI Model Response
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* MODULE 6: Payments & Invoices Ledger */}
+              {adminTab === 'payment_ledger' && (
+                <div className="space-y-6">
+                  <div>
+                    <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                      <CreditCard className="w-5 h-5 text-amber-400" />
+                      Candidate Payments & Meta Escrow Ledger
+                    </h3>
+                    <p className="text-xs text-gray-400 mt-1">Audited ledger of candidate UPI/bank payments, company fee cut, and pure Meta ad spend transfers.</p>
+                  </div>
+
+                  <div className="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-xl">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left text-xs">
+                        <thead className="bg-slate-950 text-gray-400 uppercase font-semibold text-[10px] tracking-wider border-b border-slate-800">
+                          <tr>
+                            <th className="py-3 px-4">TXN ID</th>
+                            <th className="py-3 px-4">Candidate & User ID</th>
+                            <th className="py-3 px-4">Date & Time</th>
+                            <th className="py-3 px-4">Payment Mode</th>
+                            <th className="py-3 px-4">Gross Paid</th>
+                            <th className="py-3 px-4">Company Cut ({companyMarginPct}%)</th>
+                            <th className="py-3 px-4">Meta Payout</th>
+                            <th className="py-3 px-4">Status</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-800/80 text-gray-200">
+                          {transactionsList.map((t) => (
+                            <tr key={t.txnId} className="hover:bg-slate-800/40 transition">
+                              <td className="py-3 px-4 font-mono text-amber-400 font-bold">{t.txnId}</td>
+                              <td className="py-3 px-4">
+                                <div className="font-bold text-white">{t.candidateName}</div>
+                                <div className="text-[10px] text-gray-400 font-mono">{t.candidateId}</div>
+                              </td>
+                              <td className="py-3 px-4 text-gray-400">{t.date}</td>
+                              <td className="py-3 px-4 text-gray-300 font-medium">{t.mode}</td>
+                              <td className="py-3 px-4 font-bold text-white">₹{t.amount}</td>
+                              <td className="py-3 px-4 font-bold text-amber-400">+ ₹{t.companyCut}</td>
+                              <td className="py-3 px-4 font-bold text-emerald-400">₹{t.metaPayout}</td>
+                              <td className="py-3 px-4">
+                                <span className="bg-emerald-950 text-emerald-400 border border-emerald-800 px-2 py-0.5 rounded-full text-[10px] font-bold">
+                                  {t.status}
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+            </main>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================
+          BOSS SUITE MODAL 1: CANDIDATE FULL DOSSIER
+      ======================================================== */}
+      {selectedCandidateDossier && (
+        <div className="fixed inset-0 z-50 bg-gray-950/70 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-slate-900 border border-slate-800 w-full max-w-lg rounded-3xl p-6 sm:p-8 text-white shadow-2xl relative my-8">
+            <button
+              onClick={() => setSelectedCandidateDossier(null)}
+              className="absolute top-5 right-5 w-8 h-8 rounded-full bg-slate-800 text-gray-400 hover:text-white flex items-center justify-center transition"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            <div className="flex items-center gap-4 border-b border-slate-800 pb-5">
+              <div className="w-14 h-14 rounded-2xl bg-amber-400 text-slate-950 font-black text-xl flex items-center justify-center">
+                {selectedCandidateDossier.name.charAt(0)}
+              </div>
+              <div>
+                <span className="text-[10px] font-mono font-bold bg-amber-400 text-slate-950 px-2 py-0.5 rounded-full">
+                  {selectedCandidateDossier.id}
+                </span>
+                <h3 className="text-lg font-bold text-white mt-1">{selectedCandidateDossier.name}</h3>
+                <p className="text-xs text-gray-400">{selectedCandidateDossier.post}</p>
+              </div>
+            </div>
+
+            <div className="py-5 space-y-3.5 text-xs text-gray-300">
+              <div className="flex justify-between border-b border-slate-800/80 pb-2">
+                <span className="text-gray-400">Ward & Pincode:</span>
+                <span className="font-semibold text-white">{selectedCandidateDossier.ward} ({selectedCandidateDossier.pincode})</span>
+              </div>
+              <div className="flex justify-between border-b border-slate-800/80 pb-2">
+                <span className="text-gray-400">Election Symbol:</span>
+                <span className="font-semibold text-amber-400">{selectedCandidateDossier.symbol}</span>
+              </div>
+              <div className="flex justify-between border-b border-slate-800/80 pb-2">
+                <span className="text-gray-400">GPS Coordinates:</span>
+                <span className="font-mono text-gray-300">{selectedCandidateDossier.lat}, {selectedCandidateDossier.lng}</span>
+              </div>
+              <div className="flex justify-between border-b border-slate-800/80 pb-2">
+                <span className="text-gray-400">Current Plan:</span>
+                <span className="font-semibold text-emerald-400">{selectedCandidateDossier.plan}</span>
+              </div>
+              <div className="flex justify-between border-b border-slate-800/80 pb-2">
+                <span className="text-gray-400">Total Ads Launched:</span>
+                <span className="font-bold text-white">{selectedCandidateDossier.totalAds} Campaigns</span>
+              </div>
+              <div className="flex justify-between border-b border-slate-800/80 pb-2">
+                <span className="text-gray-400">Total Money Deposited:</span>
+                <span className="font-black text-emerald-400 text-sm">₹{selectedCandidateDossier.totalSpend}</span>
+              </div>
+            </div>
+
+            <div className="pt-2 flex gap-3">
+              <button
+                onClick={() => {
+                  const cand = selectedCandidateDossier;
+                  setSelectedCandidateDossier(null);
+                  handleImpersonateCandidate(cand);
+                }}
+                className="flex-1 py-3 rounded-xl font-bold text-xs bg-[#bbf7d0] hover:bg-[#86efac] text-slate-950 transition flex items-center justify-center gap-2 shadow-md"
+              >
+                <UserCheck className="w-4 h-4" />
+                Login as this Candidate
+              </button>
+              <a
+                href={`https://wa.me/91${selectedCandidateDossier.phone}`}
+                target="_blank"
+                rel="noreferrer"
+                className="px-4 py-3 rounded-xl font-semibold text-xs bg-slate-800 hover:bg-slate-700 text-gray-200 transition flex items-center justify-center"
+              >
+                WhatsApp
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================
+          BOSS SUITE MODAL 2: CREATE SUBSCRIPTION PLAN
+      ======================================================== */}
+      {isCreatePlanModalOpen && (
+        <div className="fixed inset-0 z-50 bg-gray-950/70 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-slate-900 border border-slate-800 w-full max-w-md rounded-3xl p-6 sm:p-8 text-white shadow-2xl relative my-8">
+            <button
+              onClick={() => setIsCreatePlanModalOpen(false)}
+              className="absolute top-5 right-5 w-8 h-8 rounded-full bg-slate-800 text-gray-400 hover:text-white flex items-center justify-center transition"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            <h3 className="text-lg font-bold text-white mb-1">Create Subscription Packet</h3>
+            <p className="text-xs text-gray-400 mb-5">Define new political tier pricing and ad limits.</p>
+
+            <div className="space-y-4 text-xs">
+              <div>
+                <label className="block text-gray-300 font-semibold mb-1">Plan Name*</label>
+                <input 
+                  type="text" 
+                  placeholder="e.g. Nagar Palika Mega War-Room"
+                  value={newPlanName}
+                  onChange={(e) => setNewPlanName(e.target.value)}
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-xs"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-gray-300 font-semibold mb-1">Price (₹ / cycle)*</label>
+                  <input 
+                    type="number" 
+                    value={newPlanPrice}
+                    onChange={(e) => setNewPlanPrice(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-xs"
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-300 font-semibold mb-1">Daily Ad Cap (₹)*</label>
+                  <input 
+                    type="number" 
+                    value={newPlanDailyLimit}
+                    onChange={(e) => setNewPlanDailyLimit(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-xs"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-gray-300 font-semibold mb-1">Features (comma separated)*</label>
+                <textarea 
+                  rows={3}
+                  value={newPlanFeatures}
+                  onChange={(e) => setNewPlanFeatures(e.target.value)}
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-white text-xs"
+                />
+              </div>
+
+              <button
+                onClick={handleCreateNewPlan}
+                className="w-full py-3 rounded-xl font-bold text-xs bg-amber-400 hover:bg-amber-300 text-slate-950 transition shadow-md mt-2"
+              >
+                Create Plan & Deploy to Platform
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+
+      {/* ========================================================
+          6. "+ CREATE NEW AD" MODAL
+      ======================================================== */}
+      {isCreateAdModalOpen && (
+        <div className="fixed inset-0 z-50 bg-gray-950/60 backdrop-blur-md flex items-center justify-center p-3 sm:p-5 overflow-y-auto">
+          <div className="bg-white w-full max-w-5xl rounded-[32px] border border-gray-200 shadow-2xl overflow-hidden my-6 relative flex flex-col max-h-[92vh]">
+            
+            <div className="p-5 sm:px-8 border-b border-gray-100 flex items-center justify-between bg-white shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center">
+                  <Megaphone className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-950">Create & Submit Political Ad</h3>
+                  <p className="text-xs text-gray-500">
+                    आप एड सबमिट करें — हमारी एक्सपर्ट कंपनी टीम इसे चेक व बेहतर बनाकर Meta पर लाइव करेगी।
+                  </p>
+                </div>
+              </div>
+
+              <button 
+                onClick={() => setIsCreateAdModalOpen(false)}
+                className="w-9 h-9 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 flex items-center justify-center transition"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-5 sm:p-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
+              <div className="lg:col-span-7 space-y-5">
+                {modalError && (
+                  <div className="p-3.5 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-xs font-semibold flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
+                    <span>{modalError}</span>
+                  </div>
+                )}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-800 mb-1">Campaign Title*</label>
+                    <input 
+                      type="text" 
+                      value={modalTitle}
+                      onChange={(e) => setModalTitle(e.target.value)}
+                      className="w-full bg-[#fafafa] border border-gray-300 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 font-medium"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-800 mb-1">WhatsApp Phone*</label>
+                    <input 
+                      type="tel"
+                      value={modalPhone}
+                      onChange={(e) => setModalPhone(e.target.value)}
+                      className="w-full bg-[#fafafa] border border-gray-300 rounded-xl px-3 py-2.5 text-xs text-gray-900"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-800 mb-1">Political Slogan (चुनावी नारा)*</label>
+                  <input type="text" value={modalSlogan} onChange={(e) => setModalSlogan(e.target.value)} className="w-full bg-[#fafafa] border border-gray-300 rounded-xl px-3.5 py-2.5 text-xs text-gray-900" />
+                  <p className="text-[10px] text-emerald-700 mt-1">✨ हमारी कंपनी की कॉपीराइटिंग टीम इस नारे को और अधिक प्रभावशाली बना देगी।</p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-800 mb-1">Area / Ward</label>
+                    <input type="text" value={modalArea} onChange={(e) => setModalArea(e.target.value)} className="w-full bg-[#fafafa] border border-gray-300 rounded-xl px-3 py-2 text-xs" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-800 mb-1">Pincode</label>
+                    <input type="text" maxLength={6} value={modalPincode} onChange={(e) => setModalPincode(e.target.value)} className="w-full bg-[#fafafa] border border-gray-300 rounded-xl px-3 py-2 text-xs font-mono" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-800 mb-1">Radius</label>
+                    <span className="text-xs font-bold text-emerald-700 block mt-2">{modalRadius} km</span>
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-[#fafafa] border border-gray-200">
+                  <div className="flex justify-between items-center mb-1.5">
+                    <label className="text-xs font-bold text-gray-800">Daily Ad Budget (दैनिक बजट):</label>
+                    <span className="text-sm font-black text-emerald-700">₹{modalDailyBudget} / day</span>
+                  </div>
+                  <input type="range" min="200" max="5000" step="100" value={modalDailyBudget} onChange={(e) => setModalDailyBudget(Number(e.target.value))} className="w-full accent-emerald-600" />
+                </div>
+              </div>
+
+              {/* RIGHT PREVIEW */}
+              <div className="lg:col-span-5 flex flex-col items-center justify-center">
+                <div className="w-full max-w-[280px] rounded-[36px] bg-white p-3 border-4 border-gray-900 shadow-xl">
+                  <div className="w-20 h-3 bg-gray-900 rounded-b-lg mx-auto mb-2"></div>
+                  <div className="h-44 p-3 text-white flex flex-col justify-between bg-gradient-to-br from-emerald-800 to-slate-950 rounded-xl">
+                    <span className="text-[9px] font-bold text-yellow-300">{obPost}</span>
+                    <div className="text-center">
+                      <p className="font-bold text-sm">{obCandidateName}</p>
+                      <p className="text-[10px] text-yellow-300">"{modalSlogan}"</p>
+                    </div>
+                    <span className="text-[8px] text-gray-300">चिन्ह: {modalSymbol} · {modalArea}</span>
+                  </div>
+                </div>
+                <div className="mt-4 p-3 rounded-xl bg-amber-50 border border-amber-200 text-[11px] text-amber-900 text-center">
+                  🛡️ <strong>कंपनी गारंटी:</strong> सबमिट करने के बाद हमारी टीम आपके पोस्टर व टेक्स्ट को चेक व सुंदर बनाकर Meta पर अप्रूव करेगी।
+                </div>
+              </div>
+            </div>
+
+            <div className="p-4 sm:px-8 border-t border-gray-100 bg-gray-50 flex items-center justify-between shrink-0">
+              <span className="text-xs text-gray-500">Managed Approval Workflow Enabled</span>
+              <div className="flex items-center gap-3">
+                <button type="button" onClick={() => setIsCreateAdModalOpen(false)} className="px-5 py-2.5 rounded-full text-xs font-semibold text-gray-600">Cancel</button>
+                <button type="button" onClick={handlePublishAdFromModal} className="px-8 py-3 rounded-full font-bold text-xs text-gray-950 bg-[#bbf7d0] hover:bg-[#86efac] shadow-md">
+                  Submit Ad for Company Enhancement & Launch →
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      )}
+
+    </div>
+  );
+}

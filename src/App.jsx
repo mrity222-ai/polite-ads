@@ -12,6 +12,7 @@ import SuperAdminLoginPage from './features/auth/SuperAdminLoginPage';
 
 import CreateAdModal from './features/campaigns/CreateAdModal';
 import Toast from './components/ui/Toast';
+import SmoothScroll from './components/ui/SmoothScroll';
 import PrivacyPolicy from './features/legal/PrivacyPolicy';
 import DataDeletion from './features/legal/DataDeletion';
 import TermsOfService from './features/legal/TermsOfService';
@@ -145,32 +146,34 @@ export default function App() {
   if (isCheckingSession) return <div className="p-10" role="status">Checking server session…</div>;
   if (authError && !user) return <div className="p-10" role="alert"><p>{authError}</p><button onClick={checkSession} className="underline">Retry session check</button></div>;
 
-  return <>
-    <Toast type={toast.type} show={toast.show} message={toast.message} onClose={() => setToast({ show: false, message: '' })} />
-    {!user ? (
-      <LandingPage
-        onOpenAuth={mode => navigateTo(mode || 'login')}
-        onNavigate={navigateTo}
-        onLogout={handleLogout}
-      />
-    ) : (
-      user.role === 'admin' && !candidatePreview ? (
-        <AdminHub
-          key={user.id}
-          onSwitchToCandidateView={() => setCandidatePreview(true)}
+  return (
+    <SmoothScroll>
+      <Toast type={toast.type} show={toast.show} message={toast.message} onClose={() => setToast({ show: false, message: '' })} />
+      {!user ? (
+        <LandingPage
+          onOpenAuth={mode => navigateTo(mode || 'login')}
+          onNavigate={navigateTo}
           onLogout={handleLogout}
-          showToast={showToast}
         />
       ) : (
-        <CandidateWorkspace
-          key={user.id}
-          user={user}
-          onLogout={handleLogout}
-          showToast={showToast}
-          onSwitchToAdmin={() => setCandidatePreview(false)}
-          onProfileComplete={() => setUser(previous => ({ ...previous, onboarding_completed: true }))}
-        />
-      )
-    )}
-  </>;
+        user.role === 'admin' && !candidatePreview ? (
+          <AdminHub
+            key={user.id}
+            onSwitchToCandidateView={() => setCandidatePreview(true)}
+            onLogout={handleLogout}
+            showToast={showToast}
+          />
+        ) : (
+          <CandidateWorkspace
+            key={user.id}
+            user={user}
+            onLogout={handleLogout}
+            showToast={showToast}
+            onSwitchToAdmin={() => setCandidatePreview(false)}
+            onProfileComplete={() => setUser(previous => ({ ...previous, onboarding_completed: true }))}
+          />
+        )
+      )}
+    </SmoothScroll>
+  );
 }

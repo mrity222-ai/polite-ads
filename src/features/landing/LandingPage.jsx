@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { integrationsApi } from '../../api/integrations';
 import {
   Megaphone,
@@ -147,18 +148,22 @@ export default function LandingPage({
               </div>
             ) : (
               <>
-                <button
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                   onClick={() => onOpenAuth && onOpenAuth('login')}
                   className="px-4 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold text-gray-800 hover:text-gray-950 transition"
                 >
                   Log in
-                </button>
-                <button
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                   onClick={() => onOpenAuth && onOpenAuth('signup')}
                   className="px-4 sm:px-6 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-semibold text-gray-950 bg-[#bbf7d0] hover:bg-[#86efac] transition shadow-sm"
                 >
                   Get started for free
-                </button>
+                </motion.button>
               </>
             )}
           </div>
@@ -168,37 +173,65 @@ export default function LandingPage({
       {/* Hero Section */}
       <section className="relative pt-14 pb-20 md:pt-24 md:pb-32 bg-[#fafafa] bg-grid-pattern border-b border-gray-100 overflow-hidden">
         {/* Floating Badges */}
-        <div className="hidden lg:block absolute left-12 top-24 bg-white/90 backdrop-blur-md p-3 rounded-2xl shadow-lg border border-gray-100 animate-bounce duration-1000">
-          <div className="flex items-center gap-2 text-xs font-semibold text-gray-800">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+        <motion.div
+          animate={{ y: [0, -10, 0] }}
+          transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut' }}
+          className="hidden lg:block absolute left-12 top-24 bg-white/95 backdrop-blur-md p-3.5 rounded-2xl shadow-xl border border-gray-100"
+        >
+          <div className="flex items-center gap-2 text-xs font-bold text-gray-800">
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
             Meta ECI Verified Templates
           </div>
-        </div>
+        </motion.div>
 
-        <div className="hidden lg:block absolute right-14 top-36 bg-white/90 backdrop-blur-md p-3.5 rounded-2xl shadow-lg border border-gray-100">
+        <motion.div
+          animate={{ y: [0, 10, 0] }}
+          transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+          className="hidden lg:block absolute right-14 top-36 bg-white/95 backdrop-blur-md p-4 rounded-2xl shadow-xl border border-gray-100"
+        >
           <div className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">
             Ward Reach Efficiency
           </div>
           <div className="text-sm font-black text-emerald-700">₹0.04 / Local Voter</div>
-        </div>
+        </motion.div>
 
         <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center space-y-6">
-          <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
+          <motion.span
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5 }}
+            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 shadow-2xs"
+          >
             <Vote className="w-3.5 h-3.5" />
             Engineered for Gram Panchayat, Nagar Palika & Vidhan Sabha
-          </span>
+          </motion.span>
 
-          <h1 className="text-4xl sm:text-6xl font-black text-gray-950 tracking-tight leading-[1.12]">
+          <motion.h1
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, ease: "easeOut" }}
+            className="text-4xl sm:text-6xl font-black text-gray-950 tracking-tight leading-[1.12]"
+          >
             Build your election campaign audience. Grow on Facebook & Instagram.
-          </h1>
+          </motion.h1>
 
-          <p className="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto font-normal leading-relaxed">
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.15, ease: "easeOut" }}
+            className="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto font-normal leading-relaxed"
+          >
             Stop wasting budget on broad city targeting. Launch hyper-local, symbol-pinned Facebook
             and Instagram ads within 3km of your polling booth in 60 seconds.
-          </p>
+          </motion.p>
 
           {/* Buffer Signature Pill Input Bar */}
-          <div className="pt-4 max-w-xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.25, ease: "easeOut" }}
+            className="pt-4 max-w-xl mx-auto"
+          >
             <form
               onSubmit={handlePillSubmit}
               className="bg-white p-2 rounded-full border border-gray-200 shadow-xl flex items-center justify-between transition focus-within:ring-2 focus-within:ring-emerald-500/20"
@@ -210,25 +243,62 @@ export default function LandingPage({
                 onChange={(e) => setPillName(e.target.value)}
                 className="w-full pl-5 pr-2 py-2 text-xs sm:text-sm bg-transparent border-none text-gray-900 placeholder-gray-400 focus:outline-none"
               />
-              <button
+              <motion.button
+                whileHover={{ scale: 1.04 }}
+                whileTap={{ scale: 0.96 }}
                 type="submit"
                 className="shrink-0 px-5 sm:px-7 py-3 rounded-full text-xs sm:text-sm font-bold text-gray-950 bg-[#bbf7d0] hover:bg-[#86efac] transition flex items-center gap-1.5 shadow-sm"
               >
                 <span>Start Campaign</span>
                 <ArrowRight className="w-4 h-4" />
-              </button>
+              </motion.button>
             </form>
             <p className="text-xs text-gray-400 mt-3 font-normal">
               No Meta Ads Manager complexity &bull; Election Commission compliant disclaimers &bull; Human quality review
             </p>
-          </div>
+          </motion.div>
         </div>
       </section>
+
+      {/* Infinite Scrolling Marquee Banner */}
+      <div className="overflow-hidden whitespace-nowrap py-3.5 bg-gray-950 text-white border-y border-gray-800 flex select-none">
+        <motion.div
+          className="flex space-x-10 text-xs font-bold tracking-wider uppercase text-gray-300"
+          animate={{ x: ["0%", "-50%"] }}
+          transition={{ repeat: Infinity, duration: 20, ease: "linear" }}
+        >
+          {[
+            "🚀 Instant Ward Geofencing",
+            "🎯 Meta Verified Disclaimers",
+            "⚡ AI Hindi & Regional Slogans",
+            "🗳️ Booth-Level Targeting",
+            "🔥 100% ECI Compliant",
+            "📱 Direct WhatsApp Connections",
+            "🚀 Instant Ward Geofencing",
+            "🎯 Meta Verified Disclaimers",
+            "⚡ AI Hindi & Regional Slogans",
+            "🗳️ Booth-Level Targeting",
+            "🔥 100% ECI Compliant",
+            "📱 Direct WhatsApp Connections",
+          ].map((item, index) => (
+            <span key={index} className="flex items-center gap-3">
+              <span className="text-emerald-400">&bull;</span>
+              <span>{item}</span>
+            </span>
+          ))}
+        </motion.div>
+      </div>
 
       {/* Interactive Ad Simulator */}
       <section id="simulator" className="py-20 md:py-24 bg-white border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-2xl mx-auto mb-14 space-y-3">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: 0.6 }}
+            className="text-center max-w-2xl mx-auto mb-14 space-y-3"
+          >
             <h2 className="text-2xl sm:text-4xl font-black text-gray-950 tracking-tight">
               Test Drive Your Ward Ad Campaign
             </h2>
@@ -236,11 +306,17 @@ export default function LandingPage({
               Customize your parameters on the left. The live simulator on the right computes real-time voter
               impressions and renders the exact feed format that local voters see.
             </p>
-          </div>
+          </motion.div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             {/* Left: Interactive Controls */}
-            <div className="lg:col-span-7 bg-[#fafafa] p-6 sm:p-8 rounded-3xl border border-gray-200/80 shadow-sm space-y-6">
+            <motion.div
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 0.6 }}
+              className="lg:col-span-7 bg-[#fafafa] p-6 sm:p-8 rounded-3xl border border-gray-200/80 shadow-sm space-y-6"
+            >
               <div className="flex items-center gap-2 border-b border-gray-200 pb-3">
                 <Sliders className="w-4 h-4 text-emerald-600" />
                 <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider">
@@ -385,10 +461,16 @@ export default function LandingPage({
                   </span>
                 </div>
               </div>
-            </div>
+            </motion.div>
 
             {/* Right: Phone Live Feed Preview */}
-            <div className="lg:col-span-5 flex justify-center">
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 0.6 }}
+              className="lg:col-span-5 flex justify-center"
+            >
               <div className="w-[320px] sm:w-[350px] bg-gray-950 rounded-[44px] p-3 shadow-2xl border-[6px] border-gray-900 relative">
                 {/* Speaker pill */}
                 <div className="w-20 h-4 bg-gray-800 rounded-full mx-auto mb-2"></div>
@@ -459,7 +541,7 @@ export default function LandingPage({
                   </div>
                 </div>
               </div>
-            </div>
+            </motion.div>
           </div>
         </div>
       </section>
@@ -467,8 +549,14 @@ export default function LandingPage({
       {/* Chess Model Section */}
       <section id="chess-model" className="py-20 md:py-24 bg-[#fafafa] border-b border-gray-200/80">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-3xl mx-auto mb-16 space-y-3">
-            <span className="text-xs font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: 0.6 }}
+            className="text-center max-w-3xl mx-auto mb-16 space-y-3"
+          >
+            <span className="text-xs font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200 shadow-2xs">
               4-Tier Tactical Architecture
             </span>
             <h2 className="text-3xl sm:text-4xl font-black text-gray-950 tracking-tight">
@@ -478,7 +566,7 @@ export default function LandingPage({
               Every political office requires a different strategic footprint. From hyper-localized 3km ward
               saturation to constituency-wide voter mobilization.
             </p>
-          </div>
+          </motion.div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
@@ -515,8 +603,13 @@ export default function LandingPage({
                 badge: 'Parliament'
               }
             ].map((chess, idx) => (
-              <div
+              <motion.div
                 key={idx}
+                initial={{ opacity: 0, y: 35 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.15 }}
+                transition={{ duration: 0.5, delay: idx * 0.1 }}
+                whileHover={{ y: -6, transition: { duration: 0.2 } }}
                 className="bg-white p-6 rounded-3xl border border-gray-200/90 shadow-sm hover:shadow-md transition space-y-4 flex flex-col justify-between"
               >
                 <div className="space-y-3">
@@ -534,7 +627,7 @@ export default function LandingPage({
                   <span className="text-gray-400">Budget Range:</span>
                   <span className="font-bold text-gray-900">{chess.budget}</span>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
@@ -543,14 +636,20 @@ export default function LandingPage({
       {/* Pricing Section */}
       <section id="pricing" className="py-20 md:py-24 bg-white border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: 0.6 }}
+            className="text-center max-w-2xl mx-auto mb-16 space-y-3"
+          >
             <h2 className="text-3xl sm:text-4xl font-black text-gray-950 tracking-tight">
               Transparent Election Pricing
             </h2>
             <p className="text-sm text-gray-600">
               Zero hidden setup fees. Pay only for Meta direct voter impressions plus our quality review service.
             </p>
-          </div>
+          </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
             {(livePlans.length > 0 ? livePlans : [
@@ -598,8 +697,13 @@ export default function LandingPage({
                 ]
               }
             ]).map((plan, idx) => (
-              <div
+              <motion.div
                 key={idx}
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.15 }}
+                transition={{ duration: 0.55, delay: idx * 0.12 }}
+                whileHover={{ y: -8, transition: { duration: 0.25 } }}
                 className={`p-7 rounded-3xl border flex flex-col justify-between transition ${
                   plan.featured
                     ? 'border-emerald-600 bg-white shadow-xl relative ring-2 ring-emerald-600/20'
@@ -639,7 +743,9 @@ export default function LandingPage({
                   </ul>
                 </div>
 
-                <button
+                <motion.button
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
                   onClick={() => {
                     if (onOpenAuth) onOpenAuth('signup');
                     else window.location.hash = '#/signup';
@@ -651,8 +757,8 @@ export default function LandingPage({
                   }`}
                 >
                   Choose {plan.name || plan.title || 'Plan'}
-                </button>
-              </div>
+                </motion.button>
+              </motion.div>
             ))}
           </div>
         </div>
@@ -689,10 +795,18 @@ export default function LandingPage({
                 a: 'Yes! Every ad includes your WhatsApp or direct phone button, enabling local ward voters to message or call your election office with one tap.'
               }
             ].map((faq, idx) => (
-              <div key={idx} className="bg-white p-5 rounded-2xl border border-gray-200/80 shadow-sm space-y-1.5">
+              <motion.div
+                key={idx}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.2 }}
+                transition={{ duration: 0.45, delay: idx * 0.08 }}
+                whileHover={{ scale: 1.01, transition: { duration: 0.15 } }}
+                className="bg-white p-5 rounded-2xl border border-gray-200/80 shadow-sm space-y-1.5"
+              >
                 <h4 className="text-sm font-bold text-gray-950">{faq.q}</h4>
                 <p className="text-xs text-gray-600 leading-relaxed">{faq.a}</p>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
